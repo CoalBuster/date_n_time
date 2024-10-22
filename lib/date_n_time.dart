@@ -1,7 +1,5 @@
 library date_n_time;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'src/local_date.dart';
+export 'src/local_date_range.dart';
+export 'src/local_date_time.dart';
