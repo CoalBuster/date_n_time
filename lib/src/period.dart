@@ -1,28 +1,101 @@
-/// A date-based amount of time in the ISO-8601 calendar system, such as '2 years, 3 months and 4 days'.
-class Period implements Comparable<Period> {
-  final int days;
-  final int months;
-  final int years;
+import 'temporal/chrono_unit.dart';
+import 'temporal/temporal.dart';
+import 'temporal/temporal_amount.dart';
+
+/// A date-based amount of time in the ISO-8601 calendar system,
+/// such as '2 years, 3 months and 4 days'.
+class Period implements TemporalAmount {
+  final int _days;
+  final int _months;
+  final int _years;
+
+  static const Period zero = Period(days: 0);
 
   const Period({
-    this.days = 0,
-    this.months = 0,
-    this.years = 0,
-  });
+    int days = 0,
+    int months = 0,
+    int years = 0,
+  })  : _days = days,
+        _months = months,
+        _years = years;
 
-  Period operator +(Period other) => plus(
+  /// Adds this Period and [other] and
+  /// returns the sum as a new Period object.
+  Period operator +(Period other) => add(
         days: other.days,
         months: other.months,
         years: other.years,
       );
 
-  Period operator -(Period other) => minus(
+  /// Subtracts [other] from this Period and
+  /// returns the difference as a new Period object.
+  Period operator -(Period other) => subtract(
         days: other.days,
         months: other.months,
         years: other.years,
       );
 
-  Period minus({
+  /// The years unit of this [Period].
+  int get years => _years;
+
+  /// The months unit of this [Period].
+  int get months => _months;
+
+  /// The days unit of this [Period].
+  int get days => _days;
+
+  /// Whether this [Period] is equal [other].
+  ///
+  /// Periods are equal if all components are individually equal,
+  /// as reported by [years], [months] and [days].
+  /// Note that this means that a period of "15 Months" is not equal
+  /// to a period of "1 Year and 3 Months".
+  @override
+  bool operator ==(Object other) =>
+      other is Period &&
+      _years == other._years &&
+      _months == other._months &&
+      _days == other._days;
+
+  @override
+  int get hashCode => Object.hash(_years, _months, _days);
+
+  @override
+  Temporal addTo(Temporal temporal) {
+    if (_years != 0) {
+      temporal = temporal.plus(_years, ChronoUnit.years);
+    }
+
+    if (_months != 0) {
+      temporal = temporal.plus(_months, ChronoUnit.months);
+    }
+
+    if (_days != 0) {
+      temporal = temporal.plus(_days, ChronoUnit.days);
+    }
+
+    return temporal;
+  }
+
+  @override
+  Temporal subtractFrom(Temporal temporal) {
+    if (_years != 0) {
+      temporal = temporal.minus(_years, ChronoUnit.years);
+    }
+
+    if (_months != 0) {
+      temporal = temporal.minus(_months, ChronoUnit.months);
+    }
+
+    if (_days != 0) {
+      temporal = temporal.minus(_days, ChronoUnit.days);
+    }
+
+    return temporal;
+  }
+
+  /// Returns a copy of this [Period] with the specified units subtracted.
+  Period subtract({
     int days = 0,
     int months = 0,
     int years = 0,
@@ -34,7 +107,8 @@ class Period implements Comparable<Period> {
     );
   }
 
-  Period plus({
+  /// Returns a copy of this [Period] with the specified units added.
+  Period add({
     int days = 0,
     int months = 0,
     int years = 0,
@@ -46,28 +120,26 @@ class Period implements Comparable<Period> {
     );
   }
 
-  /// Compares this [Period] to [other], returning zero if the values are equal.
+  /// Returns a string representation of this [Period].
   ///
-  /// Returns a negative integer if this [Period] is shorter than
-  /// [other], or a positive integer if it is longer.
+  /// Returns a string with years, months and days, in the
+  /// following format: `P<years>Y<months>M<days>D`. For example,
+  /// ```dart
+  /// var d = const Duration(years: 1, months: 2, days: 3);
+  /// print(d.toString()); // P1Y2M3D
+  /// ```
   ///
-  /// A negative [Period] is always considered shorter than a positive one.
-  ///
-  /// It is always the case that `period1.compareTo(period2) < 0` iff
-  /// `(someDate + period1).compareTo(someDate + period2) < 0`.
-  int compareTo(Period other) {
-    final yearCompare = years.compareTo(other.years);
-
-    if (yearCompare != 0) {
-      return yearCompare;
+  /// A zero period will be represented as zero days, `P0D`.
+  @override
+  String toString() {
+    if (this == zero) {
+      return 'P0D';
     }
 
-    final monthsCompare = months.compareTo(other.months);
+    final yearsText = _years == 0 ? '' : 'Y$_years';
+    final monthsText = _months == 0 ? '' : 'M$_months';
+    final daysText = _days == 0 ? '' : 'D$_days';
 
-    if (monthsCompare != 0) {
-      return monthsCompare;
-    }
-
-    return days.compareTo(other.days);
+    return 'P$yearsText$monthsText$daysText';
   }
 }

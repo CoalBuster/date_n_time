@@ -1,4 +1,5 @@
-import '../date_n_time.dart';
+import 'local_date.dart';
+import 'temporal/chrono_unit.dart';
 
 class LocalDateRange {
   /// The start of the range of dates.
@@ -8,12 +9,9 @@ class LocalDateRange {
   final LocalDate end;
 
   /// Creates a date range for the given start and end [DateTime].
-  LocalDateRange({
-    required this.start,
-    required this.end,
-  }) : assert(!start.isAfter(end));
+  LocalDateRange(this.start, this.end) : assert(start < end);
 
-  int get durationInDays => end.difference(start).inDays;
+  // Period get period => start.until(end);
 
   @override
   bool operator ==(Object other) {
@@ -30,31 +28,29 @@ class LocalDateRange {
   String toString() => '$start - $end';
 
   bool contains(LocalDate other) =>
-      start.isAtSameMomentAs(other) ||
-      end.isAtSameMomentAs(other) ||
-      start.isBefore(other) && end.isAfter(other);
+      start == other || end == other || start < other && end > other;
 
   LocalDateRange? intersect(LocalDateRange other) {
     if (!intersects(other)) {
       return null;
     }
 
-    var left = start.isAfter(other.start) ? start : other.start;
-    var right = end.isBefore(other.end) ? end : other.end;
-    return LocalDateRange(start: left, end: right);
+    var left = start > other.start ? start : other.start;
+    var right = end < other.end ? end : other.end;
+    return LocalDateRange(left, right);
   }
 
   bool intersects(LocalDateRange other) =>
-      start.isAtSameMomentAs(other.start) ||
-      start.isAtSameMomentAs(other.end) ||
-      end.isAtSameMomentAs(other.start) ||
-      end.isAtSameMomentAs(other.end) ||
-      start.isAfter(other.start) && start.isBefore(other.end) ||
-      end.isAfter(other.start) && end.isBefore(other.end) ||
-      start.isBefore(other.start) && end.isAfter(other.end);
+      start == other.start ||
+      start == other.end ||
+      end == other.start ||
+      end == other.end ||
+      start > other.start && start < other.end ||
+      end > other.start && end < other.end ||
+      start < other.start && end > other.end;
 
   Iterable<LocalDate> toLocalDates() sync* {
-    for (var date = start; date <= end; date = date.add(days: 1)) {
+    for (var date = start; date <= end; date = date.plus(1, ChronoUnit.days)) {
       yield date;
     }
   }

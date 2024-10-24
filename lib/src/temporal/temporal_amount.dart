@@ -1,5 +1,6 @@
 import 'temporal.dart';
 
-abstract class TemporalAmount {
-Temporal addTo(Temporal temporal)
+abstract interface class TemporalAmount {
+  Temporal addTo(Temporal temporal);
+  Temporal subtractFrom(Temporal temporal);
 }

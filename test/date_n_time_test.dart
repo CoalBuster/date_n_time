@@ -1,12 +1,12 @@
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:date_n_time/date_n_time.dart';
+import 'package:date_n_time/src/local_time.dart';
+import 'package:test/test.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  test('description', () {
+    final time = LocalTime(10, 90, 90);
+    expect(time.hour, 11);
+    expect(time.minute, 31);
+    expect(time.seconds, 30);
   });
 }
