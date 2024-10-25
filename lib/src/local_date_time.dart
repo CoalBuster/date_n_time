@@ -56,6 +56,20 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       : this.date = date,
         this.time = time;
 
+  factory LocalDateTime.parse(String formattedString) {
+    var dateTime = DateTime.parse(formattedString);
+    return LocalDateTime(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.millisecond,
+      dateTime.microsecond,
+    );
+  }
+
   /// The year.
   ///
   /// ```dart
@@ -126,6 +140,18 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
   int get epochDay => date.epochDay;
 
+  int get microsecondOfDay => time.microsecondOfDay;
+
+  /// Returns true if year is a leap year.
+  ///
+  /// This implements the Gregorian calendar leap year rules wherein
+  /// a year is considered to be a leap year if it is divisible by 4,
+  /// excepting years divisible by 100, but including years divisible by 400.
+  ///
+  /// This function assumes the use of the Gregorian calendar
+  /// or the proleptic Gregorian calendar.
+  bool get isLeapYear => date.isLeapYear;
+
   /// Whether this [LocalDateTime] occurs before [other].
   bool operator <(LocalDateTime other) => compareTo(other) < 0;
 
@@ -137,6 +163,17 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
   /// Whether this [LocalDateTime] occurs after or at the same moment as [other].
   bool operator >=(LocalDateTime other) => compareTo(other) >= 0;
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is LocalDateTime && date == date && time == time;
+  }
+
+  @override
+  int get hashCode => Object.hash(date, time);
 
   @override
   LocalDateTime operator +(TemporalAmount amount) =>
@@ -177,7 +214,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoField.millisecond => time.millisecond,
       ChronoField.microsecond => time.microsecond,
       ChronoField.epochDay => epochDay,
-      _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
+      ChronoField.microsecondOfDay => microsecondOfDay,
     };
   }
 
@@ -189,12 +226,11 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.weeks ||
       ChronoUnit.days =>
         LocalDateTime.of(date.minus(amountToSubtract, unit), time),
-      ChronoUnit.hours ||
-      ChronoUnit.minutes ||
-      ChronoUnit.seconds ||
-      ChronoUnit.milliseconds ||
-      ChronoUnit.microseconds =>
-        LocalDateTime.of(date, time.minus(amountToSubtract, unit)),
+      ChronoUnit.hours => _plusTime(-amountToSubtract, 0, 0, 0, 0),
+      ChronoUnit.minutes => _plusTime(0, -amountToSubtract, 0, 0, 0),
+      ChronoUnit.seconds => _plusTime(0, 0, -amountToSubtract, 0, 0),
+      ChronoUnit.milliseconds => _plusTime(0, 0, 0, -amountToSubtract, 0),
+      ChronoUnit.microseconds => _plusTime(0, 0, 0, 0, -amountToSubtract),
     };
   }
 
@@ -206,12 +242,11 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.weeks ||
       ChronoUnit.days =>
         LocalDateTime.of(date.plus(amountToAdd, unit), time),
-      ChronoUnit.hours ||
-      ChronoUnit.minutes ||
-      ChronoUnit.seconds ||
-      ChronoUnit.milliseconds ||
-      ChronoUnit.microseconds =>
-        LocalDateTime.of(date, time.minus(amountToAdd, unit)),
+      ChronoUnit.hours => _plusTime(amountToAdd, 0, 0, 0, 0),
+      ChronoUnit.minutes => _plusTime(0, amountToAdd, 0, 0, 0),
+      ChronoUnit.seconds => _plusTime(0, 0, amountToAdd, 0, 0),
+      ChronoUnit.milliseconds => _plusTime(0, 0, 0, amountToAdd, 0),
+      ChronoUnit.microseconds => _plusTime(0, 0, 0, 0, amountToAdd),
     };
   }
 
@@ -228,7 +263,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.seconds ||
       ChronoUnit.milliseconds ||
       ChronoUnit.microseconds =>
-        time.until(endExclusive, unit),
+        _untilTime(endExclusive, unit),
     };
   }
 
@@ -269,4 +304,32 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
   LocalTime toLocalTime() =>
       LocalTime(hour, minute, second, millisecond, microsecond);
+
+  @override
+  String toString() => atSystemZone().toIso8601String();
+
+  LocalDateTime _plusTime(
+    int hours,
+    int minutes,
+    int seconds,
+    int milliseconds,
+    int microseconds,
+  ) {
+    final addition = Duration(
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
+      microseconds: microseconds,
+    ).inMicroseconds;
+    final current = time.microsecondOfDay;
+    final days = Duration(microseconds: current + addition).inDays;
+    final newTime = time.plus(addition, ChronoUnit.microseconds);
+    return LocalDateTime.of(date.plus(days, ChronoUnit.days), newTime);
+  }
+
+  int _untilTime(Temporal endExclusive, ChronoUnit unit) {
+    var dayDiff = date.until(endExclusive, ChronoUnit.days);
+    var timeDiff = time.until(endExclusive, ChronoUnit.microseconds);
+  }
 }
