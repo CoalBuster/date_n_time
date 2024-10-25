@@ -1,6 +1,7 @@
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
+import 'temporal/unsupported_temporal_type_error.dart';
 
 /// A date-based amount of time in the ISO-8601 calendar system,
 /// such as '2 years, 3 months and 4 days'.
@@ -18,6 +19,20 @@ class Period implements TemporalAmount {
   })  : _days = days,
         _months = months,
         _years = years;
+
+  factory Period.between(Temporal startInclusive, Temporal endExclusive) {
+    int totalMonths = 0;
+
+    try {
+      totalMonths = startInclusive.until(endExclusive, ChronoUnit.months);
+      startInclusive = startInclusive.plus(totalMonths, ChronoUnit.months);
+    } on UnsupportedTemporalTypeError {}
+
+    final days = startInclusive.until(endExclusive, ChronoUnit.days);
+    final years = totalMonths ~/ DateTime.monthsPerYear;
+    final months = totalMonths.remainder(DateTime.monthsPerYear);
+    return Period(years: years, months: months, days: days);
+  }
 
   /// Adds this Period and [other] and
   /// returns the sum as a new Period object.

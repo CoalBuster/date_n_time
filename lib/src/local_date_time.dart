@@ -1,3 +1,6 @@
+import 'day_of_week.dart';
+import 'local_date.dart';
+import 'local_time.dart';
 import 'temporal/chrono_field.dart';
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
@@ -5,7 +8,8 @@ import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
 
 class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
-  final DateTime _internal;
+  final LocalDate date;
+  final LocalTime time;
 
   LocalDateTime(
     int year, [
@@ -16,16 +20,8 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     int second = 0,
     int millisecond = 0,
     int microsecond = 0,
-  ]) : _internal = DateTime.utc(
-          year,
-          month,
-          day,
-          hour,
-          minute,
-          second,
-          millisecond,
-          microsecond,
-        );
+  ]) : this.of(LocalDate(year, month, day),
+            LocalTime(hour, minute, second, millisecond, microsecond));
 
   factory LocalDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch) {
     final dateTime = DateTime.now();
@@ -56,24 +52,91 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     );
   }
 
-  int get epochDay =>
-      _internal.microsecondsSinceEpoch ~/ Duration.microsecondsPerDay;
+  LocalDateTime.of(LocalDate date, LocalTime time)
+      : this.date = date,
+        this.time = time;
+
+  /// The year.
+  ///
+  /// ```dart
+  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// print(moonLanding.year); // 1969
+  /// ```
+  int get year => date.year;
+
+  /// The month `[1..12]`.
+  ///
+  /// ```dart
+  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// print(moonLanding.month); // 7
+  /// assert(moonLanding.month == DateTime.july);
+  /// ```
+  int get month => date.month;
+
+  /// The day of the month `[1..31]`.
+  ///
+  /// ```dart
+  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// print(moonLanding.day); // 20
+  /// ```
+  int get dayOfMonth => date.dayOfMonth;
+
+  /// The day of the week `[monday..sunday]`.
+  DayOfWeek get dayOfWeek => date.dayOfWeek;
+
+  /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
+  ///
+  /// ```dart
+  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// print(moonLanding.hour); // 20
+  /// ```
+  int get hour => time.hour;
+
+  /// The minute `[0...59]`.
+  ///
+  /// ```dart
+  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// print(moonLanding.minute); // 18
+  /// ```
+  int get minute => time.minute;
+
+  /// The second `[0...59]`.
+  ///
+  /// ```dart
+  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// print(moonLanding.second); // 4
+  /// ```
+  int get second => time.second;
+
+  /// The millisecond `[0...999]`.
+  ///
+  /// ```dart
+  /// final time = LocalTime.parse('05:01:01.234567');
+  /// print(time.millisecond); // 234
+  /// ```
+  int get millisecond => time.millisecond;
+
+  /// The microsecond `[0...999]`.
+  ///
+  /// ```dart
+  /// final time = LocalTime.parse('05:01:01.234567');
+  /// print(time.microsecond); // 567
+  /// ```
+  int get microsecond => time.microsecond;
+
+  int get epochDay => date.epochDay;
 
   /// Whether this [LocalDateTime] occurs before [other].
-  bool operator <(LocalDateTime other) => _internal.isBefore(other._internal);
+  bool operator <(LocalDateTime other) => compareTo(other) < 0;
 
   /// Whether this [LocalDateTime] occurs after [other].
-  bool operator >(LocalDateTime other) => _internal.isAfter(other._internal);
+  bool operator >(LocalDateTime other) => compareTo(other) > 0;
 
   /// Whether this [LocalDateTime] occurs before or at the same moment as [other].
-  bool operator <=(LocalDateTime other) =>
-      _internal.isBefore(other._internal) ||
-      _internal.isAtSameMomentAs(other._internal);
+  bool operator <=(LocalDateTime other) => compareTo(other) <= 0;
 
   /// Whether this [LocalDateTime] occurs after or at the same moment as [other].
-  bool operator >=(LocalDateTime other) =>
-      _internal.isAfter(other._internal) ||
-      _internal.isAtSameMomentAs(other._internal);
+  bool operator >=(LocalDateTime other) => compareTo(other) >= 0;
 
   @override
   LocalDateTime operator +(TemporalAmount amount) =>
@@ -86,14 +149,16 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   @override
   LocalDateTime adjust(ChronoField field, int newValue) {
     return switch (field) {
-      ChronoField.year => _with(year: newValue),
-      ChronoField.month => _with(month: newValue),
-      ChronoField.dayOfMonth => _with(day: newValue),
-      ChronoField.hourOfDay => _with(hour: newValue),
-      ChronoField.minute => _with(minute: newValue),
-      ChronoField.second => _with(second: newValue),
-      ChronoField.millisecond => _with(millisecond: newValue),
-      ChronoField.microsecond => _with(microsecond: newValue),
+      ChronoField.year ||
+      ChronoField.month ||
+      ChronoField.dayOfMonth =>
+        LocalDateTime.of(date.adjust(field, newValue), time),
+      ChronoField.hourOfDay ||
+      ChronoField.minute ||
+      ChronoField.second ||
+      ChronoField.millisecond ||
+      ChronoField.microsecond =>
+        LocalDateTime.of(date, time.adjust(field, newValue)),
       ChronoField.epochDay =>
         LocalDateTime.fromMicrosecondsSinceEpoch(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
@@ -103,9 +168,14 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   @override
   int get(ChronoField field) {
     return switch (field) {
-      ChronoField.year => _internal.year,
-      ChronoField.month => _internal.month,
-      ChronoField.dayOfMonth => _internal.day,
+      ChronoField.year => date.year,
+      ChronoField.month => date.month,
+      ChronoField.dayOfMonth => date.dayOfMonth,
+      ChronoField.hourOfDay => time.hour,
+      ChronoField.minute => time.minute,
+      ChronoField.second => time.second,
+      ChronoField.millisecond => time.millisecond,
+      ChronoField.microsecond => time.microsecond,
       ChronoField.epochDay => epochDay,
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
@@ -114,74 +184,89 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   @override
   LocalDateTime minus(int amountToSubtract, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(year: _internal.year - amountToSubtract),
-      ChronoUnit.months => _with(month: _internal.month - amountToSubtract),
-      ChronoUnit.weeks =>
-        _with(day: _internal.day - amountToSubtract * DateTime.daysPerWeek),
-      ChronoUnit.days => _with(day: _internal.day - amountToSubtract),
-      ChronoUnit.hours => _with(hour: _internal.hour - amountToSubtract),
-      ChronoUnit.minutes => _with(minute: _internal.minute - amountToSubtract),
-      ChronoUnit.seconds => _with(second: _internal.second - amountToSubtract),
-      ChronoUnit.milliseconds =>
-        _with(millisecond: _internal.millisecond - amountToSubtract),
+      ChronoUnit.years ||
+      ChronoUnit.months ||
+      ChronoUnit.weeks ||
+      ChronoUnit.days =>
+        LocalDateTime.of(date.minus(amountToSubtract, unit), time),
+      ChronoUnit.hours ||
+      ChronoUnit.minutes ||
+      ChronoUnit.seconds ||
+      ChronoUnit.milliseconds ||
       ChronoUnit.microseconds =>
-        _with(microsecond: _internal.microsecond - amountToSubtract),
+        LocalDateTime.of(date, time.minus(amountToSubtract, unit)),
     };
   }
 
   @override
   LocalDateTime plus(int amountToAdd, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(year: _internal.year + amountToAdd),
-      ChronoUnit.months => _with(month: _internal.month + amountToAdd),
-      ChronoUnit.weeks =>
-        _with(day: _internal.day + amountToAdd * DateTime.daysPerWeek),
-      ChronoUnit.days => _with(day: _internal.day + amountToAdd),
-      ChronoUnit.hours => _with(hour: _internal.hour + amountToAdd),
-      ChronoUnit.minutes => _with(minute: _internal.minute + amountToAdd),
-      ChronoUnit.seconds => _with(second: _internal.second + amountToAdd),
-      ChronoUnit.milliseconds =>
-        _with(millisecond: _internal.millisecond + amountToAdd),
+      ChronoUnit.years ||
+      ChronoUnit.months ||
+      ChronoUnit.weeks ||
+      ChronoUnit.days =>
+        LocalDateTime.of(date.plus(amountToAdd, unit), time),
+      ChronoUnit.hours ||
+      ChronoUnit.minutes ||
+      ChronoUnit.seconds ||
+      ChronoUnit.milliseconds ||
       ChronoUnit.microseconds =>
-        _with(microsecond: _internal.microsecond + amountToAdd),
+        LocalDateTime.of(date, time.minus(amountToAdd, unit)),
     };
   }
 
   @override
   int until(Temporal endExclusive, ChronoUnit unit) {
     return switch (unit) {
-      // ChronoUnit.years => _monthsUntil(endExclusive) ~/ DateTime.monthsPerYear,
-      // ChronoUnit.months => _monthsUntil(endExclusive),
-      // ChronoUnit.weeks => _daysUntil(endExclusive) ~/ DateTime.daysPerWeek,
-      // ChronoUnit.days => _daysUntil(endExclusive),
-      _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
+      ChronoUnit.years ||
+      ChronoUnit.months ||
+      ChronoUnit.weeks ||
+      ChronoUnit.days =>
+        date.until(endExclusive, unit),
+      ChronoUnit.hours ||
+      ChronoUnit.minutes ||
+      ChronoUnit.seconds ||
+      ChronoUnit.milliseconds ||
+      ChronoUnit.microseconds =>
+        time.until(endExclusive, unit),
     };
   }
 
+  DateTime atUtc() => DateTime.utc(
+        date.year,
+        date.month,
+        date.dayOfMonth,
+        time.hour,
+        time.minute,
+        time.second,
+        time.millisecond,
+        time.microsecond,
+      );
+
+  DateTime atSystemZone() => DateTime.new(
+        date.year,
+        date.month,
+        date.dayOfMonth,
+        time.hour,
+        time.minute,
+        time.second,
+        time.millisecond,
+        time.microsecond,
+      );
+
   @override
-  int compareTo(LocalDateTime other) => _internal.compareTo(other._internal);
+  int compareTo(LocalDateTime other) {
+    int dateCompare = date.compareTo(other.date);
 
-// LocalTime toLocalTime() =>;
+    if (dateCompare != 0) {
+      return dateCompare;
+    }
 
-  LocalDateTime _with({
-    int? year,
-    int? month,
-    int? day,
-    int? hour,
-    int? minute,
-    int? second,
-    int? millisecond,
-    int? microsecond,
-  }) {
-    return LocalDateTime(
-      year ?? _internal.year,
-      month ?? _internal.month,
-      day ?? _internal.day,
-      hour ?? _internal.hour,
-      minute ?? _internal.minute,
-      second ?? _internal.second,
-      millisecond ?? _internal.millisecond,
-      microsecond ?? _internal.microsecond,
-    );
+    return time.compareTo(other.time);
   }
+
+  LocalDate toLocalDate() => LocalDate(year, month, dayOfMonth);
+
+  LocalTime toLocalTime() =>
+      LocalTime(hour, minute, second, millisecond, microsecond);
 }

@@ -1,6 +1,7 @@
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
+import 'temporal/unsupported_temporal_type_error.dart';
 
 class TimeSpan extends Duration implements TemporalAmount {
   const TimeSpan({
@@ -11,6 +12,25 @@ class TimeSpan extends Duration implements TemporalAmount {
     super.milliseconds = 0,
     super.microseconds = 0,
   });
+
+  factory TimeSpan.between(Temporal startInclusive, Temporal endExclusive) {
+    try {
+      int microseconds =
+          startInclusive.until(endExclusive, ChronoUnit.microseconds);
+      return TimeSpan(microseconds: microseconds);
+    } on UnsupportedTemporalTypeError {}
+
+    try {
+      int milliseconds =
+          startInclusive.until(endExclusive, ChronoUnit.milliseconds);
+      return TimeSpan(milliseconds: milliseconds);
+    } on UnsupportedTemporalTypeError {}
+
+    {
+      int seconds = startInclusive.until(endExclusive, ChronoUnit.seconds);
+      return TimeSpan(seconds: seconds);
+    }
+  }
 
   TimeSpan.of(Duration duration) : this(microseconds: duration.inMicroseconds);
 

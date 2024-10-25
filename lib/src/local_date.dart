@@ -1,7 +1,8 @@
 import 'package:intl/intl.dart';
 
-import 'date_time_format.dart';
 import 'day_of_week.dart';
+import 'local_date_time.dart';
+import 'local_time.dart';
 import 'temporal/chrono_field.dart';
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
@@ -24,12 +25,21 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     return LocalDate(dateTime.year, dateTime.month, dateTime.day);
   }
 
-  /// Obtains an instance of [LocalDate] from a text string such as 2024-10-22.
-  /// The text is parsed using the given [format], returning a date.
-  /// If [format] is absent, the text is parsed using [DateTimeFormat.ISO_LOCAL_DATE].
-  factory LocalDate.parse(String value, [DateFormat? format]) {
-    format ??= DateTimeFormat.ISO_LOCAL_DATE;
-    var dateTime = format.parse(value, true);
+  /// Constructs a new [LocalDate] instance based on [formattedString].
+  ///
+  /// Throws a [FormatException] if the input string cannot be parsed.
+  ///
+  /// The function parses a subset of ISO 8601,
+  /// which includes the subset accepted by RFC 3339.
+  ///
+  /// Examples of accepted strings:
+  ///
+  /// * `"2012-02-27"`
+  /// * `"20120227"`
+  /// * `"+20120227"`
+  /// * `"-123450101"`: in the year -12345.
+  factory LocalDate.parse(String formattedString) {
+    var dateTime = DateTime.parse(formattedString);
     return LocalDate(dateTime.year, dateTime.month, dateTime.day);
   }
 
@@ -62,6 +72,17 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   int get year => _internal.year;
 
   int get epochDay => _internal.difference(epoch._internal).inDays;
+
+  /// Returns true if year is a leap year.
+  ///
+  /// This implements the Gregorian calendar leap year rules wherein
+  /// a year is considered to be a leap year if it is divisible by 4,
+  /// excepting years divisible by 100, but including years divisible by 400.
+  ///
+  /// This function assumes the use of the Gregorian calendar
+  /// or the proleptic Gregorian calendar.
+  bool get isLeapYear =>
+      (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
 
   @override
   bool operator ==(Object other) {
@@ -133,10 +154,10 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   @override
   LocalDate plus(int amountToAdd, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(year: year - amountToAdd),
-      ChronoUnit.months => _with(month: month - amountToAdd),
-      ChronoUnit.weeks => _with(dayOfMonth: dayOfMonth - amountToAdd * 7),
-      ChronoUnit.days => _with(dayOfMonth: dayOfMonth - amountToAdd),
+      ChronoUnit.years => _with(year: year + amountToAdd),
+      ChronoUnit.months => _with(month: month + amountToAdd),
+      ChronoUnit.weeks => _with(dayOfMonth: dayOfMonth + amountToAdd * 7),
+      ChronoUnit.days => _with(dayOfMonth: dayOfMonth + amountToAdd),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -152,13 +173,24 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     };
   }
 
+  LocalDateTime atStartOfDay() => atTime(LocalTime.midnight);
+
+  LocalDateTime atTime(LocalTime time) => LocalDateTime.of(this, time);
+
   @override
   int compareTo(LocalDate other) => _internal.compareTo(other._internal);
 
   String format(DateFormat format) => format.format(_internal);
 
   @override
-  String toString() => format(DateTimeFormat.ISO_LOCAL_DATE);
+  String toString() {
+    String y = (year >= -9999 && year <= 9999)
+        ? year.toString().padLeft(4, '0')
+        : year.toString().padLeft(6, '0');
+    String m = month.toString().padLeft(2, '0');
+    String d = dayOfMonth.toString().padLeft(2, '0');
+    return "$y-$m-$d";
+  }
 
   int _daysUntil(Temporal endExclusive) {
     return endExclusive.get(ChronoField.epochDay) - epochDay;
