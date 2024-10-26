@@ -13,7 +13,7 @@ void main() {
     expect(date.second, 15);
     expect(date.millisecond, 0);
     expect(date.microsecond, 0);
-    expect(date.toString(), '2010-02-27T10:30:15');
+    expect(date.toString(), '2010-02-27T10:30:15.000');
   });
 
   test('parse leap year', () {
@@ -28,7 +28,7 @@ void main() {
     expect(date.millisecond, 0);
     expect(date.microsecond, 0);
     expect(date.isLeapYear, true);
-    expect(date.toString(), '2012-02-29T10:30:15');
+    expect(date.toString(), '2012-02-29T10:30:15.000');
   });
 
   test('parse rolls date', () {
@@ -42,7 +42,7 @@ void main() {
     expect(date.second, 15);
     expect(date.millisecond, 0);
     expect(date.microsecond, 0);
-    expect(date.toString(), '2012-03-01T10:30:15');
+    expect(date.toString(), '2012-03-01T10:30:15.000');
   });
 
   test('plus Period adds ignores dst', () {

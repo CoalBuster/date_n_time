@@ -71,6 +71,8 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   /// ```
   int get year => _internal.year;
 
+  int get prolepticMonth => year * DateTime.monthsPerYear + month - 1;
+
   int get epochDay => _internal.difference(epoch._internal).inDays;
 
   /// Returns true if year is a leap year.
@@ -136,6 +138,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
       ChronoField.month => month,
       ChronoField.dayOfMonth => dayOfMonth,
       ChronoField.epochDay => epochDay,
+      ChronoField.prolepticMonth => prolepticMonth,
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -197,12 +200,8 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   }
 
   int _monthsUntil(Temporal endExclusive) {
-    final endProlepticMonth =
-        endExclusive.get(ChronoField.year) * DateTime.monthsPerYear +
-            endExclusive.get(ChronoField.month) -
-            1;
-    final startProlepticMonth = year * DateTime.monthsPerYear + month - 1;
-    var totalMonths = endProlepticMonth - startProlepticMonth;
+    var totalMonths =
+        endExclusive.get(ChronoField.prolepticMonth) - prolepticMonth;
     final days = endExclusive.get(ChronoField.dayOfMonth) - dayOfMonth;
 
     if (totalMonths > 0 && days < 0) {
