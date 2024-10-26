@@ -34,20 +34,30 @@ class Period implements TemporalAmount {
     return Period(years: years, months: months, days: days);
   }
 
-  /// Adds this Period and [other] and
-  /// returns the sum as a new Period object.
-  Period operator +(Period other) => add(
-        days: other.days,
-        months: other.months,
-        years: other.years,
+  /// Adds this [Period] and [other] and
+  /// returns the sum as a new [Period] object.
+  Period operator +(Period other) => Period(
+        years: years + other.years,
+        months: months + other.months,
+        days: days + other.days,
       );
 
-  /// Subtracts [other] from this Period and
-  /// returns the difference as a new Period object.
-  Period operator -(Period other) => subtract(
-        days: other.days,
-        months: other.months,
-        years: other.years,
+  /// Subtracts [other] from this [Period] and
+  /// returns the difference as a new [Period] object.
+  Period operator -(Period other) => Period(
+        years: years - other.years,
+        months: months - other.months,
+        days: days - other.days,
+      );
+
+  /// Creates a new [Period] with the opposite direction of this [Period].
+  ///
+  /// The returned [Period] has the same length as this one, but will have the
+  /// opposite sign (as reported by [isNegative]) as this one where possible.
+  Period operator -() => Period(
+        years: 0 - years,
+        months: 0 - months,
+        days: 0 - days,
       );
 
   /// The years unit of this [Period].
@@ -58,6 +68,12 @@ class Period implements TemporalAmount {
 
   /// The days unit of this [Period].
   int get days => _days;
+
+  /// Whether this [Period] is negative.
+  ///
+  /// A negative [Period] represents the difference from a later date to an
+  /// earlier date.
+  bool get isNegative => years < 0 || months < 0 || days < 0;
 
   /// Whether this [Period] is equal [other].
   ///
@@ -93,6 +109,30 @@ class Period implements TemporalAmount {
   }
 
   @override
+  Period minus(int amountToSubtract, ChronoUnit unit) {
+    return switch (unit) {
+      ChronoUnit.years => _with(years: years - amountToSubtract),
+      ChronoUnit.months => _with(months: months - amountToSubtract),
+      ChronoUnit.weeks =>
+        _with(days: days - amountToSubtract * DateTime.daysPerWeek),
+      ChronoUnit.days => _with(days: days - amountToSubtract),
+      _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
+    };
+  }
+
+  @override
+  Period plus(int amountToAdd, ChronoUnit unit) {
+    return switch (unit) {
+      ChronoUnit.years => _with(years: years + amountToAdd),
+      ChronoUnit.months => _with(months: months + amountToAdd),
+      ChronoUnit.weeks =>
+        _with(days: days + amountToAdd * DateTime.daysPerWeek),
+      ChronoUnit.days => _with(days: days + amountToAdd),
+      _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
+    };
+  }
+
+  @override
   Temporal subtractFrom(Temporal temporal) {
     if (_years != 0) {
       temporal = temporal.minus(_years, ChronoUnit.years);
@@ -107,32 +147,6 @@ class Period implements TemporalAmount {
     }
 
     return temporal;
-  }
-
-  /// Returns a copy of this [Period] with the specified units subtracted.
-  Period subtract({
-    int days = 0,
-    int months = 0,
-    int years = 0,
-  }) {
-    return Period(
-      days: this.days - days,
-      months: this.months - months,
-      years: this.years - years,
-    );
-  }
-
-  /// Returns a copy of this [Period] with the specified units added.
-  Period add({
-    int days = 0,
-    int months = 0,
-    int years = 0,
-  }) {
-    return Period(
-      days: this.days + days,
-      months: this.months + months,
-      years: this.years + years,
-    );
   }
 
   /// Returns a string representation of this [Period].
@@ -156,5 +170,17 @@ class Period implements TemporalAmount {
     final daysText = _days == 0 ? '' : 'D$_days';
 
     return 'P$yearsText$monthsText$daysText';
+  }
+
+  Period _with({
+    int? years,
+    int? months,
+    int? days,
+  }) {
+    return Period(
+      years: years ?? this.years,
+      months: months ?? this.months,
+      days: days ?? this.days,
+    );
   }
 }

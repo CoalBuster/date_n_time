@@ -47,16 +47,32 @@ void main() {
 
   test('plus Period adds ignores dst', () {
     final start = LocalDateTime(2024, 10, 26, 10, 30, 15);
-    final expected = LocalDateTime(2024, 10, 28, 10, 30, 15);
-    final end = start + Period(days: 2);
-    final period = Period.between(start, end);
-    expect(end.dayOfWeek, DayOfWeek.monday);
+    final expected = LocalDateTime(2024, 11, 01, 10, 30, 15);
+    final end = start + Period(days: 6);
+    expect(end.dayOfWeek, DayOfWeek.friday);
     expect(end, expected);
+    expect(start < end, true);
+    expect(start <= end, true);
+    expect(start >= end, false);
+    expect(start > end, false);
     expect(end.hour, 10);
     expect(end.minute, 30);
     expect(end.second, 15);
-    expect(period.months, 0);
-    expect(period.days, 2);
+  });
+
+  test('minus Period substracts ignores dst', () {
+    final start = LocalDateTime(2024, 10, 01, 10, 30, 15);
+    final expected = LocalDateTime(2023, 08, 31, 10, 30, 15);
+    final end = start - Period(years: 1, months: 1, days: 1);
+    expect(end.dayOfWeek, DayOfWeek.thursday);
+    expect(end, expected);
+    expect(start < end, false);
+    expect(start <= end, false);
+    expect(start >= end, true);
+    expect(start > end, true);
+    expect(end.hour, 10);
+    expect(end.minute, 30);
+    expect(end.second, 15);
   });
 
   test('plus TimeSpan adds ignores dst', () {
@@ -70,5 +86,35 @@ void main() {
     expect(end.minute, 30);
     expect(end.second, 15);
     expect(duration.inDays, 2);
+  });
+
+  test('compare with earlier time', () {
+    final start = LocalDateTime(2024, 10, 28);
+    final end = LocalDateTime(2024, 10, 26);
+    expect(start == end, false);
+    expect(start < end, false);
+    expect(start <= end, false);
+    expect(start >= end, true);
+    expect(start > end, true);
+  });
+
+  test('compare with equal time', () {
+    final start = LocalDateTime(2024, 10, 26);
+    final end = LocalDateTime.parse('2024-10-26');
+    expect(start == end, true);
+    expect(start < end, false);
+    expect(start <= end, true);
+    expect(start >= end, true);
+    expect(start > end, false);
+  });
+
+  test('compare with later time', () {
+    final start = LocalDateTime(2024, 10, 26);
+    final end = LocalDateTime(2024, 10, 28);
+    expect(start == end, false);
+    expect(start < end, true);
+    expect(start <= end, true);
+    expect(start >= end, false);
+    expect(start > end, false);
   });
 }

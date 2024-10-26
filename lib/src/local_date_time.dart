@@ -166,7 +166,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    return other is LocalDateTime && date == date && time == time;
+    return other is LocalDateTime && date == other.date && time == other.time;
   }
 
   @override
@@ -307,11 +307,6 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
     return time.compareTo(other.time);
   }
-
-  LocalDate toLocalDate() => LocalDate(year, month, dayOfMonth);
-
-  LocalTime toLocalTime() =>
-      LocalTime(hour, minute, second, millisecond, microsecond);
 
   @override
   String toString() => atSystemZone().toIso8601String();
