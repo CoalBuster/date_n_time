@@ -1,0 +1,4 @@
+enum ZoneId {
+  system,
+  utc,
+}

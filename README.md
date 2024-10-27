@@ -1,22 +1,25 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# dart_n_time
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+A dart package extending `DateTime` to ease date or time representation and calculation.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+When only needing to work with dates and/or times, using dart's `DateTime` can be tricky.  
+That is because, unless specifically constructed using `.utc()`,  
+it will take the timezone of the system, meaning additions and subtractions of time  
+become subject to the rules of the timezone the application is running in.
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+This package is heavily inspired by Java's solution to this: `java.time`.  
+A delicate balance has been searched between dart's existing classes and new ones.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+| `date_n_time` | `dart`   | Description                             | Example           |
+| :------------ | :------- | :-------------------------------------- | :---------------- |
+| LocalDate     | -        | Date-only                               | 2024-10-26        |
+| LocalTime     | -        | Time-only                               | 10:30             |
+| LocalDateTime | -        | Date + Time, without Zone               | 2024-10-26 10:30  |
+| ZonedDateTime | DateTime | Date + Time + Zone, Interchangeable     | 2024-10-26 10:30Z |
+| Period        | -        | Length in Years, Months and Days        | P1Y2M3D           |
+| TimeSpan      | Duration | Length in Microseconds, Interchangeable | 01:02:03.456      |
 
 ## Getting started
 
@@ -25,15 +28,9 @@ start using the package.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
-```
+See the `/example` folder.
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+This is a hobby project. Support can not be guaranteed.  
+Feedback is welcome.
