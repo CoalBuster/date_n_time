@@ -11,29 +11,19 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   final LocalDate date;
   final LocalTime time;
 
-  LocalDateTime(
-    int year, [
-    int month = 1,
-    int day = 1,
-    int hour = 0,
-    int minute = 0,
-    int second = 0,
-    int millisecond = 0,
-    int microsecond = 0,
-  ]) : this.of(LocalDate(year, month, day),
-            LocalTime(hour, minute, second, millisecond, microsecond));
+  LocalDateTime(LocalDate date, LocalTime time)
+      : this.date = date,
+        this.time = time;
 
-  LocalDateTime._ofDateTime(DateTime dateTime)
-      : this(
-          dateTime.year,
-          dateTime.month,
-          dateTime.day,
-          dateTime.hour,
-          dateTime.minute,
-          dateTime.second,
-          dateTime.millisecond,
-          dateTime.microsecond,
-        );
+  factory LocalDateTime.from(Temporal temporal) {
+    if (temporal is LocalDateTime) {
+      return temporal.copyWith();
+    }
+
+    final date = LocalDate.from(temporal);
+    final time = LocalTime.from(temporal);
+    return LocalDateTime(date, time);
+  }
 
   factory LocalDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch) {
     final dateTime =
@@ -47,23 +37,25 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return LocalDateTime._ofDateTime(dateTime);
   }
 
-  LocalDateTime.of(LocalDate date, LocalTime time)
-      : this.date = date,
-        this.time = time;
-
   factory LocalDateTime.parse(String formattedString) {
     var dateTime = DateTime.parse(formattedString);
-    return LocalDateTime(
-      dateTime.year,
-      dateTime.month,
-      dateTime.day,
-      dateTime.hour,
-      dateTime.minute,
-      dateTime.second,
-      dateTime.millisecond,
-      dateTime.microsecond,
-    );
+    return LocalDateTime._ofDateTime(dateTime);
   }
+
+  LocalDateTime._ofDateTime(DateTime dateTime)
+      : this(
+            LocalDate(
+              dateTime.year,
+              dateTime.month,
+              dateTime.day,
+            ),
+            LocalTime(
+              dateTime.hour,
+              dateTime.minute,
+              dateTime.second,
+              dateTime.millisecond,
+              dateTime.microsecond,
+            ));
 
   /// The year.
   ///
@@ -186,13 +178,13 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoField.year ||
       ChronoField.month ||
       ChronoField.dayOfMonth =>
-        LocalDateTime.of(date.adjust(field, newValue), time),
+        LocalDateTime(date.adjust(field, newValue), time),
       ChronoField.hourOfDay ||
       ChronoField.minute ||
       ChronoField.second ||
       ChronoField.millisecond ||
       ChronoField.microsecond =>
-        LocalDateTime.of(date, time.adjust(field, newValue)),
+        LocalDateTime(date, time.adjust(field, newValue)),
       ChronoField.epochDay =>
         LocalDateTime.fromMicrosecondsSinceEpoch(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
@@ -213,6 +205,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoField.prolepticMonth => prolepticMonth,
       ChronoField.epochDay => epochDay,
       ChronoField.microsecondOfDay => microsecondOfDay,
+      _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
 
@@ -223,7 +216,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.months ||
       ChronoUnit.weeks ||
       ChronoUnit.days =>
-        LocalDateTime.of(date.minus(amountToSubtract, unit), time),
+        LocalDateTime(date.minus(amountToSubtract, unit), time),
       ChronoUnit.hours => LocalDateTime._ofDateTime(
           atUtc().subtract(Duration(hours: amountToSubtract))),
       ChronoUnit.minutes => LocalDateTime._ofDateTime(
@@ -244,7 +237,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.months ||
       ChronoUnit.weeks ||
       ChronoUnit.days =>
-        LocalDateTime.of(date.plus(amountToAdd, unit), time),
+        LocalDateTime(date.plus(amountToAdd, unit), time),
       ChronoUnit.hours =>
         LocalDateTime._ofDateTime(atUtc().add(Duration(hours: amountToAdd))),
       ChronoUnit.minutes =>
@@ -260,18 +253,17 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
   @override
   int until(Temporal endExclusive, ChronoUnit unit) {
+    final other = LocalDateTime.from(endExclusive);
     return switch (unit) {
-      ChronoUnit.years ||
-      ChronoUnit.months ||
+      ChronoUnit.years || ChronoUnit.months => date.until(other.date, unit),
       ChronoUnit.weeks ||
-      ChronoUnit.days =>
-        date.until(endExclusive, unit),
+      ChronoUnit.days ||
       ChronoUnit.hours ||
       ChronoUnit.minutes ||
       ChronoUnit.seconds ||
       ChronoUnit.milliseconds ||
       ChronoUnit.microseconds =>
-        _timeUntil(endExclusive, unit),
+        _timeUntil(other, unit),
     };
   }
 
@@ -308,16 +300,38 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return time.compareTo(other.time);
   }
 
+  LocalDateTime copyWith({
+    int? year,
+    int? month,
+    int? dayOfMonth,
+    int? hour,
+    int? minute,
+    int? second,
+    int? millisecond,
+    int? microsecond,
+  }) {
+    return LocalDateTime(
+        date.copyWith(
+          year: year,
+          month: month,
+          dayOfMonth: dayOfMonth,
+        ),
+        time.copyWith(
+          hour: hour,
+          minute: minute,
+          second: second,
+          millisecond: millisecond,
+          microsecond: microsecond,
+        ));
+  }
+
   @override
   String toString() => atSystemZone().toIso8601String();
 
-  int _timeUntil(Temporal endExclusive, ChronoUnit unit) {
-    var days = Duration(days: date.until(endExclusive, ChronoUnit.days));
-    var microseconds = Duration(
-        microseconds: time.until(endExclusive, ChronoUnit.microseconds));
-    var duration = days + microseconds;
-
-    return switch (unit) {
+  int _timeUntil(LocalDateTime other, ChronoUnit unit) {
+    var duration = Duration(days: date.until(other.date, ChronoUnit.days));
+    var dateSpan = switch (unit) {
+      ChronoUnit.days => duration.inDays,
       ChronoUnit.hours => duration.inHours,
       ChronoUnit.minutes => duration.inMinutes,
       ChronoUnit.seconds => duration.inSeconds,
@@ -325,5 +339,17 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       ChronoUnit.microseconds => duration.inMicroseconds,
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
+    var timeSpan = time.until(other.time, unit);
+    return dateSpan + timeSpan;
   }
+}
+
+extension LocalDateWithTime on LocalDate {
+  LocalDateTime atStartOfDay() => atTime(LocalTime.midnight);
+
+  LocalDateTime atTime(LocalTime time) => LocalDateTime(this, time);
+}
+
+extension LocalTimeWithDate on LocalTime {
+  LocalDateTime atDate(LocalDate date) => LocalDateTime(date, this);
 }

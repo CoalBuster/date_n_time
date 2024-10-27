@@ -11,4 +11,6 @@ enum ChronoField {
   epochDay,
   microsecondOfDay,
   prolepticMonth,
+
+  offsetSeconds,
 }

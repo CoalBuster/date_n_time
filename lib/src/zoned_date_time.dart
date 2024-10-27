@@ -1,4 +1,5 @@
 import 'local_date.dart';
+import 'local_date_time.dart';
 import 'local_time.dart';
 import 'temporal/chrono_field.dart';
 import 'temporal/chrono_unit.dart';
@@ -9,32 +10,43 @@ import 'zone_id.dart';
 
 class ZonedDateTime extends DateTime implements Temporal {
   factory ZonedDateTime(
-    LocalDate date,
-    LocalTime time,
+    LocalDateTime dateTime,
     ZoneId zone,
   ) {
     return switch (zone) {
       ZoneId.system => ZonedDateTime._system(
-          date.year,
-          date.month,
-          date.dayOfMonth,
-          time.hour,
-          time.minute,
-          time.second,
-          time.millisecond,
-          time.microsecond,
+          dateTime.year,
+          dateTime.month,
+          dateTime.dayOfMonth,
+          dateTime.hour,
+          dateTime.minute,
+          dateTime.second,
+          dateTime.millisecond,
+          dateTime.microsecond,
         ),
       ZoneId.utc => ZonedDateTime._utc(
-          date.year,
-          date.month,
-          date.dayOfMonth,
-          time.hour,
-          time.minute,
-          time.second,
-          time.millisecond,
-          time.microsecond,
+          dateTime.year,
+          dateTime.month,
+          dateTime.dayOfMonth,
+          dateTime.hour,
+          dateTime.minute,
+          dateTime.second,
+          dateTime.millisecond,
+          dateTime.microsecond,
         ),
     };
+  }
+
+  factory ZonedDateTime.from(Temporal temporal) {
+    final zone = _zoneFromOffset(temporal.get(ChronoField.offsetSeconds));
+    final dateTime = LocalDateTime.from(temporal);
+
+    if (zone == null) {
+      throw UnsupportedTemporalTypeError(
+          'Timezone not supported. Did device switch zones?');
+    }
+
+    return ZonedDateTime(dateTime, zone);
   }
 
   ZonedDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch)
@@ -84,16 +96,22 @@ class ZonedDateTime extends DateTime implements Temporal {
     super.microsecond = 0,
   ]) : super.utc();
 
+  LocalDateTime get dateTime => LocalDateTime(date, time);
+
   LocalDate get date => LocalDate(year, month, day);
 
   LocalTime get time =>
       LocalTime(hour, minute, second, millisecond, microsecond);
+
+  ZoneId get zone => isUtc ? ZoneId.utc : ZoneId.system;
 
   int get prolepticMonth => date.prolepticMonth;
 
   int get epochDay => date.epochDay;
 
   int get microsecondOfDay => time.microsecondOfDay;
+
+  int get offsetSeconds => timeZoneOffset.inSeconds;
 
   @override
   ZonedDateTime operator +(TemporalAmount amount) =>
@@ -136,27 +154,47 @@ class ZonedDateTime extends DateTime implements Temporal {
       ChronoField.prolepticMonth => prolepticMonth,
       ChronoField.epochDay => epochDay,
       ChronoField.microsecondOfDay => microsecondOfDay,
+      ChronoField.offsetSeconds => offsetSeconds,
     };
   }
 
   @override
-  LocalDateTime minus(int amountToSubtract, ChronoUnit unit) {
-    return switch (unit) {
-      ChronoUnit.years ||
-      ChronoUnit.months ||
-      ChronoUnit.weeks ||
-      ChronoUnit.days =>
-        LocalDateTime.of(date.minus(amountToSubtract, unit), time),
-      ChronoUnit.hours => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.minutes => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.seconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.milliseconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.microseconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
+  ZonedDateTime minus(int amountToSubtract, ChronoUnit unit) {
+    var utc = toUtc().dateTime.minus(amountToSubtract, unit);
+    return ZonedDateTime(utc, ZoneId.utc).withZoneSameInstant(zone);
+  }
+
+  @override
+  ZonedDateTime plus(int amountToAdd, ChronoUnit unit) {
+    var utc = toUtc().dateTime.plus(amountToAdd, unit);
+    return ZonedDateTime(utc, ZoneId.utc).withZoneSameInstant(zone);
+  }
+
+  @override
+  int until(Temporal endExclusive, ChronoUnit unit) {
+    final other = ZonedDateTime.from(endExclusive);
+    return this.toUtc().dateTime.until(other.toUtc(), unit);
+  }
+
+  @override
+  ZonedDateTime toLocal() => ZonedDateTime.of(super.toLocal());
+
+  @override
+  ZonedDateTime toUtc() => ZonedDateTime.of(super.toUtc());
+
+  ZonedDateTime withZoneSameInstant(ZoneId zone) {
+    return switch (zone) {
+      ZoneId.system => toLocal(),
+      ZoneId.utc => toUtc(),
     };
+  }
+
+  static ZoneId? _zoneFromOffset(int offsetSeconds) {
+    var offsets = {
+      DateTime.now().timeZoneOffset.inSeconds: ZoneId.system,
+      DateTime.timestamp().timeZoneOffset.inSeconds: ZoneId.utc,
+    };
+
+    return offsets[offsetSeconds];
   }
 }

@@ -46,8 +46,8 @@ void main() {
   });
 
   test('plus Period adds ignores dst', () {
-    final start = LocalDateTime(2024, 10, 26, 10, 30, 15);
-    final expected = LocalDateTime(2024, 11, 01, 10, 30, 15);
+    final start = LocalDateTime.parse('2024-10-26T10:30:15.000');
+    final expected = LocalDateTime.parse('2024-11-01T10:30:15.000');
     final end = start + Period(days: 6);
     expect(end.dayOfWeek, DayOfWeek.friday);
     expect(end, expected);
@@ -61,8 +61,8 @@ void main() {
   });
 
   test('minus Period substracts ignores dst', () {
-    final start = LocalDateTime(2024, 10, 01, 10, 30, 15);
-    final expected = LocalDateTime(2023, 08, 31, 10, 30, 15);
+    final start = LocalDateTime.parse('2024-10-01T10:30:15.000');
+    final expected = LocalDateTime.parse('2023-08-31T10:30:15.000');
     final end = start - Period(years: 1, months: 1, days: 1);
     expect(end.dayOfWeek, DayOfWeek.thursday);
     expect(end, expected);
@@ -76,8 +76,8 @@ void main() {
   });
 
   test('plus TimeSpan adds ignores dst', () {
-    final start = LocalDateTime(2024, 10, 26, 10, 30, 15);
-    final expected = LocalDateTime(2024, 10, 28, 10, 30, 15);
+    final start = LocalDateTime.parse('2024-10-26T10:30:15.000');
+    final expected = LocalDateTime.parse('2024-10-28T10:30:15.000');
     final end = start + TimeSpan(days: 2);
     final duration = TimeSpan.between(start, end);
     expect(end.dayOfWeek, DayOfWeek.monday);
@@ -89,8 +89,8 @@ void main() {
   });
 
   test('compare with earlier time', () {
-    final start = LocalDateTime(2024, 10, 28);
-    final end = LocalDateTime(2024, 10, 26);
+    final start = LocalDateTime.parse('2024-10-28');
+    final end = LocalDateTime.parse('2024-10-26');
     expect(start == end, false);
     expect(start < end, false);
     expect(start <= end, false);
@@ -99,7 +99,7 @@ void main() {
   });
 
   test('compare with equal time', () {
-    final start = LocalDateTime(2024, 10, 26);
+    final start = LocalDateTime.parse('2024-10-26');
     final end = LocalDateTime.parse('2024-10-26');
     expect(start == end, true);
     expect(start < end, false);
@@ -109,8 +109,8 @@ void main() {
   });
 
   test('compare with later time', () {
-    final start = LocalDateTime(2024, 10, 26);
-    final end = LocalDateTime(2024, 10, 28);
+    final start = LocalDateTime.parse('2024-10-26');
+    final end = LocalDateTime.parse('2024-10-28');
     expect(start == end, false);
     expect(start < end, true);
     expect(start <= end, true);

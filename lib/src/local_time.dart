@@ -24,6 +24,19 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
           microseconds: microsecond,
         ).inMicroseconds);
 
+  factory LocalTime.from(Temporal temporal) {
+    if (temporal is LocalTime) {
+      return temporal.copyWith();
+    }
+
+    final hour = temporal.get(ChronoField.hourOfDay);
+    final minute = temporal.get(ChronoField.minute);
+    final second = temporal.get(ChronoField.second);
+    final millisecond = temporal.get(ChronoField.millisecond);
+    final microsecond = temporal.get(ChronoField.microsecond);
+    return LocalTime(hour, minute, second, millisecond, microsecond);
+  }
+
   /// Obtains the current date from the system clock in the default time-zone.
   factory LocalTime.now() {
     final dateTime = DateTime.now();
@@ -170,11 +183,11 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
   @override
   LocalTime adjust(ChronoField field, int newValue) {
     return switch (field) {
-      ChronoField.hourOfDay => _with(hour: newValue),
-      ChronoField.minute => _with(minute: newValue),
-      ChronoField.second => _with(second: newValue),
-      ChronoField.millisecond => _with(millisecond: newValue),
-      ChronoField.microsecond => _with(microsecond: newValue),
+      ChronoField.hourOfDay => copyWith(hour: newValue),
+      ChronoField.minute => copyWith(minute: newValue),
+      ChronoField.second => copyWith(second: newValue),
+      ChronoField.millisecond => copyWith(millisecond: newValue),
+      ChronoField.microsecond => copyWith(microsecond: newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -195,13 +208,13 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
   @override
   LocalTime minus(int amountToSubtract, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.hours => _with(hour: hour - amountToSubtract),
-      ChronoUnit.minutes => _with(minute: minute - amountToSubtract),
-      ChronoUnit.seconds => _with(second: second - amountToSubtract),
+      ChronoUnit.hours => copyWith(hour: hour - amountToSubtract),
+      ChronoUnit.minutes => copyWith(minute: minute - amountToSubtract),
+      ChronoUnit.seconds => copyWith(second: second - amountToSubtract),
       ChronoUnit.milliseconds =>
-        _with(millisecond: millisecond - amountToSubtract),
+        copyWith(millisecond: millisecond - amountToSubtract),
       ChronoUnit.microseconds =>
-        _with(microsecond: microsecond - amountToSubtract),
+        copyWith(microsecond: microsecond - amountToSubtract),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -209,11 +222,13 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
   @override
   LocalTime plus(int amountToAdd, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.hours => _with(hour: hour + amountToAdd),
-      ChronoUnit.minutes => _with(minute: minute + amountToAdd),
-      ChronoUnit.seconds => _with(second: second + amountToAdd),
-      ChronoUnit.milliseconds => _with(millisecond: millisecond + amountToAdd),
-      ChronoUnit.microseconds => _with(microsecond: microsecond + amountToAdd),
+      ChronoUnit.hours => copyWith(hour: hour + amountToAdd),
+      ChronoUnit.minutes => copyWith(minute: minute + amountToAdd),
+      ChronoUnit.seconds => copyWith(second: second + amountToAdd),
+      ChronoUnit.milliseconds =>
+        copyWith(millisecond: millisecond + amountToAdd),
+      ChronoUnit.microseconds =>
+        copyWith(microsecond: microsecond + amountToAdd),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -237,21 +252,7 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
   @override
   int compareTo(LocalTime other) => _internal.compareTo(other._internal);
 
-  @override
-  String toString() {
-    String h = hour.toString().padLeft(2, '0');
-    String min = minute.toString().padLeft(2, '0');
-    String sec = second.toString().padLeft(2, '0');
-    String ms = millisecond.toString().padLeft(3, '0');
-    String us = microsecond == 0 ? "" : microsecond.toString().padLeft(3, '0');
-    return "$h:$min:$sec.$ms$us";
-  }
-
-  int _microsecondsUntil(Temporal endExclusive) {
-    return endExclusive.get(ChronoField.microsecondOfDay) - microsecondOfDay;
-  }
-
-  LocalTime _with({
+  LocalTime copyWith({
     int? hour,
     int? minute,
     int? second,
@@ -265,5 +266,19 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
       millisecond ?? this.millisecond,
       microsecond ?? this.microsecond,
     );
+  }
+
+  @override
+  String toString() {
+    String h = hour.toString().padLeft(2, '0');
+    String min = minute.toString().padLeft(2, '0');
+    String sec = second.toString().padLeft(2, '0');
+    String ms = millisecond.toString().padLeft(3, '0');
+    String us = microsecond == 0 ? "" : microsecond.toString().padLeft(3, '0');
+    return "$h:$min:$sec.$ms$us";
+  }
+
+  int _microsecondsUntil(Temporal endExclusive) {
+    return endExclusive.get(ChronoField.microsecondOfDay) - microsecondOfDay;
   }
 }

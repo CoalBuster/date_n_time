@@ -1,8 +1,6 @@
 import 'package:intl/intl.dart';
 
 import 'day_of_week.dart';
-import 'local_date_time.dart';
-import 'local_time.dart';
 import 'temporal/chrono_field.dart';
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
@@ -18,6 +16,17 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   /// Obtains an instance of LocalDate from a year, month and day.
   LocalDate(int year, [int month = 1, int dayOfMonth = 1])
       : _internal = DateTime.utc(year, month, dayOfMonth);
+
+  factory LocalDate.from(Temporal temporal) {
+    if (temporal is LocalDate) {
+      return temporal.copyWith();
+    }
+
+    final year = temporal.get(ChronoField.year);
+    final month = temporal.get(ChronoField.month);
+    final dayOfMonth = temporal.get(ChronoField.dayOfMonth);
+    return LocalDate(year, month, dayOfMonth);
+  }
 
   /// Obtains the current date from the system clock in the default time-zone.
   factory LocalDate.now() {
@@ -124,9 +133,9 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   @override
   LocalDate adjust(ChronoField field, int newValue) {
     return switch (field) {
-      ChronoField.year => _with(year: newValue),
-      ChronoField.month => _with(month: newValue),
-      ChronoField.dayOfMonth => _with(dayOfMonth: newValue),
+      ChronoField.year => copyWith(year: newValue),
+      ChronoField.month => copyWith(month: newValue),
+      ChronoField.dayOfMonth => copyWith(dayOfMonth: newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -146,10 +155,11 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   @override
   LocalDate minus(int amountToSubtract, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(year: year - amountToSubtract),
-      ChronoUnit.months => _with(month: month - amountToSubtract),
-      ChronoUnit.weeks => _with(dayOfMonth: dayOfMonth - amountToSubtract * 7),
-      ChronoUnit.days => _with(dayOfMonth: dayOfMonth - amountToSubtract),
+      ChronoUnit.years => copyWith(year: year - amountToSubtract),
+      ChronoUnit.months => copyWith(month: month - amountToSubtract),
+      ChronoUnit.weeks =>
+        copyWith(dayOfMonth: dayOfMonth - amountToSubtract * 7),
+      ChronoUnit.days => copyWith(dayOfMonth: dayOfMonth - amountToSubtract),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -157,10 +167,10 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   @override
   LocalDate plus(int amountToAdd, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(year: year + amountToAdd),
-      ChronoUnit.months => _with(month: month + amountToAdd),
-      ChronoUnit.weeks => _with(dayOfMonth: dayOfMonth + amountToAdd * 7),
-      ChronoUnit.days => _with(dayOfMonth: dayOfMonth + amountToAdd),
+      ChronoUnit.years => copyWith(year: year + amountToAdd),
+      ChronoUnit.months => copyWith(month: month + amountToAdd),
+      ChronoUnit.weeks => copyWith(dayOfMonth: dayOfMonth + amountToAdd * 7),
+      ChronoUnit.days => copyWith(dayOfMonth: dayOfMonth + amountToAdd),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -176,12 +186,20 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     };
   }
 
-  LocalDateTime atStartOfDay() => atTime(LocalTime.midnight);
-
-  LocalDateTime atTime(LocalTime time) => LocalDateTime.of(this, time);
-
   @override
   int compareTo(LocalDate other) => _internal.compareTo(other._internal);
+
+  LocalDate copyWith({
+    int? year,
+    int? month,
+    int? dayOfMonth,
+  }) {
+    return LocalDate(
+      year ?? this.year,
+      month ?? this.month,
+      dayOfMonth ?? this.dayOfMonth,
+    );
+  }
 
   String format(DateFormat format) => format.format(_internal);
 
@@ -211,17 +229,5 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     }
 
     return totalMonths;
-  }
-
-  LocalDate _with({
-    int? year,
-    int? month,
-    int? dayOfMonth,
-  }) {
-    return LocalDate(
-      year ?? this.year,
-      month ?? this.month,
-      dayOfMonth ?? this.dayOfMonth,
-    );
   }
 }
