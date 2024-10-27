@@ -53,6 +53,15 @@ class ZonedDateTime extends DateTime implements Temporal {
   ZonedDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch)
       : super.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
 
+  /// Obtains the current datetime from the system clock in the given time-zone.
+  factory ZonedDateTime.now(ZoneId zone) {
+    final dateTime = switch (zone) {
+      ZoneId.system => DateTime.now(),
+      ZoneId.utc => DateTime.timestamp(),
+    };
+    return ZonedDateTime.of(dateTime);
+  }
+
   factory ZonedDateTime.of(DateTime dateTime) => dateTime.isUtc
       ? ZonedDateTime._utc(
           dateTime.year,
