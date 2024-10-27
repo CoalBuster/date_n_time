@@ -157,8 +157,8 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     return switch (unit) {
       ChronoUnit.years => copyWith(year: year - amountToSubtract),
       ChronoUnit.months => copyWith(month: month - amountToSubtract),
-      ChronoUnit.weeks =>
-        copyWith(dayOfMonth: dayOfMonth - amountToSubtract * 7),
+      ChronoUnit.weeks => copyWith(
+          dayOfMonth: dayOfMonth - amountToSubtract * DateTime.daysPerWeek),
       ChronoUnit.days => copyWith(dayOfMonth: dayOfMonth - amountToSubtract),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
@@ -169,7 +169,8 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     return switch (unit) {
       ChronoUnit.years => copyWith(year: year + amountToAdd),
       ChronoUnit.months => copyWith(month: month + amountToAdd),
-      ChronoUnit.weeks => copyWith(dayOfMonth: dayOfMonth + amountToAdd * 7),
+      ChronoUnit.weeks =>
+        copyWith(dayOfMonth: dayOfMonth + amountToAdd * DateTime.daysPerWeek),
       ChronoUnit.days => copyWith(dayOfMonth: dayOfMonth + amountToAdd),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };

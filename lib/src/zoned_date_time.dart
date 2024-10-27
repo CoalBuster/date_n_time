@@ -1,3 +1,4 @@
+import 'day_of_week.dart';
 import 'local_date.dart';
 import 'local_date_time.dart';
 import 'local_time.dart';
@@ -74,6 +75,11 @@ class ZonedDateTime extends DateTime implements Temporal {
           dateTime.microsecond,
         );
 
+  factory ZonedDateTime.parse(String formattedString) {
+    var dateTime = DateTime.parse(formattedString);
+    return ZonedDateTime.of(dateTime);
+  }
+
   ZonedDateTime._system(
     super.year, [
     super.month = 1,
@@ -105,6 +111,14 @@ class ZonedDateTime extends DateTime implements Temporal {
 
   ZoneId get zone => isUtc ? ZoneId.utc : ZoneId.system;
 
+  /// The day of the week `[monday..sunday]`.
+  DayOfWeek get dayOfWeek => date.dayOfWeek;
+
+  /// Whether the year is a leap year.
+  ///
+  /// See [LocalDate.isLeapYear].
+  bool get isLeapYear => date.isLeapYear;
+
   int get prolepticMonth => date.prolepticMonth;
 
   int get epochDay => date.epochDay;
@@ -112,6 +126,18 @@ class ZonedDateTime extends DateTime implements Temporal {
   int get microsecondOfDay => time.microsecondOfDay;
 
   int get offsetSeconds => timeZoneOffset.inSeconds;
+
+  /// Whether this [ZonedDateTime] occurs before [other].
+  bool operator <(ZonedDateTime other) => compareTo(other) < 0;
+
+  /// Whether this [ZonedDateTime] occurs after [other].
+  bool operator >(ZonedDateTime other) => compareTo(other) > 0;
+
+  /// Whether this [ZonedDateTime] occurs before or at the same moment as [other].
+  bool operator <=(ZonedDateTime other) => compareTo(other) <= 0;
+
+  /// Whether this [ZonedDateTime] occurs after or at the same moment as [other].
+  bool operator >=(ZonedDateTime other) => compareTo(other) >= 0;
 
   @override
   ZonedDateTime operator +(TemporalAmount amount) =>
@@ -182,6 +208,9 @@ class ZonedDateTime extends DateTime implements Temporal {
   @override
   ZonedDateTime toUtc() => ZonedDateTime.of(super.toUtc());
 
+  @override
+  String toString() => toIso8601String();
+
   ZonedDateTime withZoneSameInstant(ZoneId zone) {
     return switch (zone) {
       ZoneId.system => toLocal(),
@@ -197,4 +226,8 @@ class ZonedDateTime extends DateTime implements Temporal {
 
     return offsets[offsetSeconds];
   }
+}
+
+extension LocalDateTimeWithZone on LocalDateTime {
+  ZonedDateTime atZone(ZoneId zone) => ZonedDateTime(this, zone);
 }

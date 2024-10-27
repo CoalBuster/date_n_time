@@ -7,3 +7,5 @@ export 'src/local_date_time.dart';
 export 'src/local_time.dart';
 export 'src/period.dart';
 export 'src/time_span.dart';
+export 'src/zone_id.dart';
+export 'src/zoned_date_time.dart';

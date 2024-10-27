@@ -211,44 +211,22 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 
   @override
   LocalDateTime minus(int amountToSubtract, ChronoUnit unit) {
-    return switch (unit) {
-      ChronoUnit.years ||
-      ChronoUnit.months ||
-      ChronoUnit.weeks ||
-      ChronoUnit.days =>
-        LocalDateTime(date.minus(amountToSubtract, unit), time),
-      ChronoUnit.hours => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.minutes => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.seconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.milliseconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-      ChronoUnit.microseconds => LocalDateTime._ofDateTime(
-          atUtc().subtract(Duration(hours: amountToSubtract))),
-    };
+    try {
+      var newDate = date.minus(amountToSubtract, unit);
+      return LocalDateTime(newDate, time);
+    } on UnsupportedTemporalTypeError {}
+
+    return _plusTime(0 - amountToSubtract, unit);
   }
 
   @override
   LocalDateTime plus(int amountToAdd, ChronoUnit unit) {
-    return switch (unit) {
-      ChronoUnit.years ||
-      ChronoUnit.months ||
-      ChronoUnit.weeks ||
-      ChronoUnit.days =>
-        LocalDateTime(date.plus(amountToAdd, unit), time),
-      ChronoUnit.hours =>
-        LocalDateTime._ofDateTime(atUtc().add(Duration(hours: amountToAdd))),
-      ChronoUnit.minutes =>
-        LocalDateTime._ofDateTime(atUtc().add(Duration(minutes: amountToAdd))),
-      ChronoUnit.seconds =>
-        LocalDateTime._ofDateTime(atUtc().add(Duration(seconds: amountToAdd))),
-      ChronoUnit.milliseconds => LocalDateTime._ofDateTime(
-          atUtc().add(Duration(milliseconds: amountToAdd))),
-      ChronoUnit.microseconds => LocalDateTime._ofDateTime(
-          atUtc().add(Duration(microseconds: amountToAdd))),
-    };
+    try {
+      var newDate = date.plus(amountToAdd, unit);
+      return LocalDateTime(newDate, time);
+    } on UnsupportedTemporalTypeError {}
+
+    return _plusTime(amountToAdd, unit);
   }
 
   @override
@@ -266,28 +244,6 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
         _timeUntil(other, unit),
     };
   }
-
-  DateTime atUtc() => DateTime.utc(
-        date.year,
-        date.month,
-        date.dayOfMonth,
-        time.hour,
-        time.minute,
-        time.second,
-        time.millisecond,
-        time.microsecond,
-      );
-
-  DateTime atSystemZone() => DateTime.new(
-        date.year,
-        date.month,
-        date.dayOfMonth,
-        time.hour,
-        time.minute,
-        time.second,
-        time.millisecond,
-        time.microsecond,
-      );
 
   @override
   int compareTo(LocalDateTime other) {
@@ -326,11 +282,32 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   }
 
   @override
-  String toString() => atSystemZone().toIso8601String();
+  String toString() => '${date.toString()}T${time.toString()}';
+
+  LocalDateTime _plusTime(int amountToAdd, ChronoUnit unit) {
+    var dateSpan = switch (unit) {
+      ChronoUnit.hours => amountToAdd ~/ Duration.hoursPerDay,
+      ChronoUnit.minutes => amountToAdd ~/ Duration.minutesPerDay,
+      ChronoUnit.seconds => amountToAdd ~/ Duration.secondsPerDay,
+      ChronoUnit.milliseconds => amountToAdd ~/ Duration.millisecondsPerDay,
+      ChronoUnit.microseconds => amountToAdd ~/ Duration.microsecondsPerDay,
+      _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
+    };
+    final newTime = time.plus(amountToAdd, unit);
+
+    if (amountToAdd > 0 && newTime < time) {
+      dateSpan++;
+    } else if (amountToAdd < 0 && newTime > time) {
+      dateSpan--;
+    }
+
+    return LocalDateTime(date.plus(dateSpan, ChronoUnit.days), newTime);
+  }
 
   int _timeUntil(LocalDateTime other, ChronoUnit unit) {
     var duration = Duration(days: date.until(other.date, ChronoUnit.days));
     var dateSpan = switch (unit) {
+      ChronoUnit.weeks => duration.inDays ~/ DateTime.daysPerWeek,
       ChronoUnit.days => duration.inDays,
       ChronoUnit.hours => duration.inHours,
       ChronoUnit.minutes => duration.inMinutes,
