@@ -1,4 +1,4 @@
-# dart_n_time
+# date_n_time
 
 A dart package extending `DateTime` to ease date or time representation and calculation.
 
