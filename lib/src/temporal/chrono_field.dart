@@ -8,6 +8,8 @@ enum ChronoField {
   millisecond,
   microsecond,
 
+  dayOfWeek,
+
   epochDay,
   microsecondOfDay,
   prolepticMonth,

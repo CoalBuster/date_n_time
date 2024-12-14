@@ -146,6 +146,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
       ChronoField.year => year,
       ChronoField.month => month,
       ChronoField.dayOfMonth => dayOfMonth,
+      ChronoField.dayOfWeek => dayOfWeek.value,
       ChronoField.epochDay => epochDay,
       ChronoField.prolepticMonth => prolepticMonth,
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),

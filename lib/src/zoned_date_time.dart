@@ -186,6 +186,7 @@ class ZonedDateTime extends DateTime implements Temporal {
       ChronoField.second => second,
       ChronoField.millisecond => millisecond,
       ChronoField.microsecond => microsecond,
+      ChronoField.dayOfWeek => dayOfWeek.value,
       ChronoField.prolepticMonth => prolepticMonth,
       ChronoField.epochDay => epochDay,
       ChronoField.microsecondOfDay => microsecondOfDay,
