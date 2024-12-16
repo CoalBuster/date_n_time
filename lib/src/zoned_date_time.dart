@@ -50,10 +50,30 @@ class ZonedDateTime extends DateTime implements Temporal {
     return ZonedDateTime(dateTime, zone);
   }
 
-  ZonedDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch)
-      : super.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
+  /// Constructs a new [ZonedDateTime] instance
+  /// with the given [microsecondsSinceEpoch].
+  ///
+  /// If [isUtc] is false, then the date is in the local time zone.
+  ///
+  /// The constructed [ZonedDateTime] represents
+  /// 1970-01-01T00:00:00Z + [microsecondsSinceEpoch] us in the given
+  /// time zone (local or UTC).
+  ///
+  /// ```dart
+  /// final newYearsEve =
+  ///     ZonedDateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
+  /// print(newYearsEve); // 2021-12-31T19:30:00.000Z
+  /// ```
+  ZonedDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+      {bool isUtc = false})
+      : super.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch, isUtc: isUtc);
 
-  /// Obtains the current datetime from the system clock in the given time-zone.
+  /// Constructs a new [ZonedDateTime] instance with current date and time
+  /// in the given [zone].
+  ///
+  /// ```dart
+  /// final nowUtc = ZonedDateTime.now(ZoneId.utc);
+  /// ```
   factory ZonedDateTime.now(ZoneId zone) {
     final dateTime = switch (zone) {
       ZoneId.system => DateTime.now(),
@@ -62,6 +82,13 @@ class ZonedDateTime extends DateTime implements Temporal {
     return ZonedDateTime.of(dateTime);
   }
 
+  /// Constructs a new [ZonedDateTime] instance from the given [dateTime].
+  ///
+  /// ```dart
+  /// final now = DateTime.now();
+  /// final zonedDateTime = ZonedDateTime.of(now);
+  /// print(now == zonedDateTime); // true
+  /// ```
   factory ZonedDateTime.of(DateTime dateTime) => dateTime.isUtc
       ? ZonedDateTime._utc(
           dateTime.year,
@@ -84,6 +111,31 @@ class ZonedDateTime extends DateTime implements Temporal {
           dateTime.microsecond,
         );
 
+  /// Constructs a new [ZonedDateTime] instance based on [formattedString].
+  ///
+  /// Throws a [FormatException] if the input string cannot be parsed.
+  ///
+  /// The function parses a subset of ISO 8601,
+  /// which includes the subset accepted by RFC 3339.
+  ///
+  /// The result is always in either local time or UTC.
+  /// If a time zone offset other than UTC is specified,
+  /// the time is converted to the equivalent local time.
+  ///
+  /// Examples of accepted strings:
+  ///
+  /// * `"2012-02-27"`
+  /// * `"2012-02-27 13:27:00"`
+  /// * `"2012-02-27 13:27:00.123456789z"`
+  /// * `"2012-02-27 13:27:00,123456789z"`
+  /// * `"20120227 13:27:00"`
+  /// * `"20120227T132700"`
+  /// * `"20120227"`
+  /// * `"+20120227"`
+  /// * `"2012-02-27T14Z"`
+  /// * `"2012-02-27T14+00:00"`
+  /// * `"-123450101 00:00:00 Z"`: in the year -12345.
+  /// * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
   factory ZonedDateTime.parse(String formattedString) {
     var dateTime = DateTime.parse(formattedString);
     return ZonedDateTime.of(dateTime);
@@ -170,7 +222,7 @@ class ZonedDateTime extends DateTime implements Temporal {
       ChronoField.microsecond =>
         ZonedDateTime.of(this.copyWith(microsecond: newValue)),
       ChronoField.epochDay =>
-        ZonedDateTime.fromMicrosecondsSinceEpoch(newValue),
+        ZonedDateTime.fromMicrosecondsSinceEpoch(newValue, isUtc: isUtc),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }

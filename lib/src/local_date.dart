@@ -6,7 +6,7 @@ import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
-import 'utils/day_of_week_extensions.dart';
+import 'utils/date_time_extensions.dart';
 
 class LocalDate implements Comparable<LocalDate>, Temporal {
   static final LocalDate epoch = LocalDate(1970, 1, 1);
@@ -32,6 +32,10 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   factory LocalDate.now() {
     final dateTime = DateTime.now();
     return LocalDate(dateTime.year, dateTime.month, dateTime.day);
+  }
+
+  factory LocalDate.ofEpochDay(int epochDay) {
+    return epoch.copyWith(dayOfMonth: epochDay);
   }
 
   /// Constructs a new [LocalDate] instance based on [formattedString].
