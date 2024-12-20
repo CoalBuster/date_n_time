@@ -24,17 +24,19 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
           microseconds: microsecond,
         ).inMicroseconds);
 
+  /// Constructs a new [LocalTime] instance
+  /// from the given temporal.
+  ///
+  /// Relies on precense of [ChronoField.microsecondOfDay].
+  ///
+  /// Throws [UnsupportedTemporalTypeError] if unable to convert.
   factory LocalTime.from(Temporal temporal) {
     if (temporal is LocalTime) {
       return temporal.copyWith();
     }
 
-    final hour = temporal.get(ChronoField.hourOfDay);
-    final minute = temporal.get(ChronoField.minute);
-    final second = temporal.get(ChronoField.second);
-    final millisecond = temporal.get(ChronoField.millisecond);
-    final microsecond = temporal.get(ChronoField.microsecond);
-    return LocalTime(hour, minute, second, millisecond, microsecond);
+    final microsecondOfDay = temporal.get(ChronoField.microsecondOfDay);
+    return LocalTime.ofMicrosecondOfDay(microsecondOfDay);
   }
 
   /// Obtains the current date from the system clock in the default time-zone.
@@ -47,6 +49,10 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
       dateTime.millisecond,
       dateTime.microsecond,
     );
+  }
+
+  factory LocalTime.ofMicrosecondOfDay(int microsecondOfDay) {
+    return midnight.copyWith(microsecond: microsecondOfDay);
   }
 
   /// Constructs a new [LocalTime] instance based on [formattedString].
@@ -188,6 +194,7 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
       ChronoField.second => copyWith(second: newValue),
       ChronoField.millisecond => copyWith(millisecond: newValue),
       ChronoField.microsecond => copyWith(microsecond: newValue),
+      ChronoField.microsecondOfDay => LocalTime.ofMicrosecondOfDay(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }

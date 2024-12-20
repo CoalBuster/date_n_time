@@ -14,5 +14,6 @@ export 'src/temporal/temporal_amount.dart';
 export 'src/temporal/unsupported_temporal_type_error.dart';
 export 'src/time_span.dart';
 export 'src/utils/date_time_extensions.dart';
+export 'src/week_fields.dart';
 export 'src/zone_id.dart';
 export 'src/zoned_date_time.dart';

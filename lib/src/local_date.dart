@@ -17,15 +17,19 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   LocalDate(int year, [int month = 1, int dayOfMonth = 1])
       : _internal = DateTime.utc(year, month, dayOfMonth);
 
+  /// Constructs a new [LocalDate] instance
+  /// from the given temporal.
+  ///
+  /// Relies on precense of [ChronoField.epochDay].
+  ///
+  /// Throws [UnsupportedTemporalTypeError] if unable to convert.
   factory LocalDate.from(Temporal temporal) {
     if (temporal is LocalDate) {
       return temporal.copyWith();
     }
 
-    final year = temporal.get(ChronoField.year);
-    final month = temporal.get(ChronoField.month);
-    final dayOfMonth = temporal.get(ChronoField.dayOfMonth);
-    return LocalDate(year, month, dayOfMonth);
+    final epochDay = temporal.get(ChronoField.epochDay);
+    return LocalDate.ofEpochDay(epochDay);
   }
 
   /// Obtains the current date from the system clock in the default time-zone.
@@ -140,6 +144,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
       ChronoField.year => copyWith(year: newValue),
       ChronoField.month => copyWith(month: newValue),
       ChronoField.dayOfMonth => copyWith(dayOfMonth: newValue),
+      ChronoField.epochDay => LocalDate.ofEpochDay(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }

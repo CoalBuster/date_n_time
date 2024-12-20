@@ -1,9 +1,9 @@
 import 'package:intl/intl.dart';
 
-import '../day_of_week.dart';
-import '../temporal/chrono_field.dart';
-import '../temporal/chrono_unit.dart';
-import '../temporal/temporal.dart';
+import 'day_of_week.dart';
+import 'temporal/chrono_field.dart';
+import 'temporal/chrono_unit.dart';
+import 'temporal/temporal.dart';
 
 class WeekFields {
   /// The first day-of-week.

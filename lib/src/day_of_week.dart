@@ -1,13 +1,26 @@
-import '../date_n_time.dart';
+import 'temporal/unsupported_temporal_type_error.dart';
 
 /// A day-of-week, such as 'Tuesday'.
 enum DayOfWeek {
+  /// Monday day-of-week.
   monday,
+
+  /// Tuesday day-of-week.
   tuesday,
+
+  /// Wednesday day-of-week.
   wednesday,
+
+  /// Thursday day-of-week.
   thursday,
+
+  /// Friday day-of-week.
   friday,
+
+  /// Saturday day-of-week.
   saturday,
+
+  /// Sunday day-of-week.
   sunday;
 
   /// The day-of-week value.

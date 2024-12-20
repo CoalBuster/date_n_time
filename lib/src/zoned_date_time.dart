@@ -38,7 +38,18 @@ class ZonedDateTime extends DateTime implements Temporal {
     };
   }
 
+  /// Constructs a new [ZonedDateTime] instance
+  /// from the given temporal.
+  ///
+  /// Relies on precense of [ChronoField.epochDay],
+  /// [ChronoField.microsecondOfDay] and [ChronoField.offsetSeconds].
+  ///
+  /// Throws [UnsupportedTemporalTypeError] if unable to convert.
   factory ZonedDateTime.from(Temporal temporal) {
+    if (temporal is ZonedDateTime) {
+      return temporal.copyWith();
+    }
+
     final zone = _zoneFromOffset(temporal.get(ChronoField.offsetSeconds));
     final dateTime = LocalDateTime.from(temporal);
 
@@ -53,20 +64,19 @@ class ZonedDateTime extends DateTime implements Temporal {
   /// Constructs a new [ZonedDateTime] instance
   /// with the given [microsecondsSinceEpoch].
   ///
-  /// If [isUtc] is false, then the date is in the local time zone.
-  ///
   /// The constructed [ZonedDateTime] represents
   /// 1970-01-01T00:00:00Z + [microsecondsSinceEpoch] us in the given
   /// time zone (local or UTC).
   ///
   /// ```dart
   /// final newYearsEve =
-  ///     ZonedDateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
+  ///     ZonedDateTime.fromMicrosecondsSinceEpoch(1640979000000000, ZoneId.utc);
   /// print(newYearsEve); // 2021-12-31T19:30:00.000Z
   /// ```
-  ZonedDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc = false})
-      : super.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch, isUtc: isUtc);
+  ZonedDateTime.fromMicrosecondsSinceEpoch(
+      int microsecondsSinceEpoch, ZoneId zone)
+      : super.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
+            isUtc: zone == ZoneId.utc);
 
   /// Constructs a new [ZonedDateTime] instance with current date and time
   /// in the given [zone].
@@ -163,13 +173,23 @@ class ZonedDateTime extends DateTime implements Temporal {
     super.microsecond = 0,
   ]) : super.utc();
 
+  /// Returns a new [LocalDateTime] instance from this [ZonedDateTime].
+  ///
+  /// Only the date and time parts are kept. Zone information is discarded.
   LocalDateTime get dateTime => LocalDateTime(date, time);
 
+  /// Retunrs a new [LocalDate] instance from this [ZonedDateTime].
+  ///
+  /// Only the date part is kept. Time and zone information is discarded.
   LocalDate get date => LocalDate(year, month, day);
 
+  /// Returns a new [LocalDateTime] instance from this [ZonedDateTime].
+  ///
+  /// Only the date and time parts are kept. Zone information is discarded.
   LocalTime get time =>
       LocalTime(hour, minute, second, millisecond, microsecond);
 
+  /// The zone that this [ZonedDateTime] is in `[utc|system]`.
   ZoneId get zone => isUtc ? ZoneId.utc : ZoneId.system;
 
   /// The day of the week `[monday..sunday]`.
@@ -180,12 +200,16 @@ class ZonedDateTime extends DateTime implements Temporal {
   /// See [LocalDate.isLeapYear].
   bool get isLeapYear => date.isLeapYear;
 
+  /// The proleptic month. Count of months since year 0.
   int get prolepticMonth => date.prolepticMonth;
 
+  /// The epoch-day. Count of days since epoch (1970-01-01).
   int get epochDay => date.epochDay;
 
+  /// The microsecond of day.
   int get microsecondOfDay => time.microsecondOfDay;
 
+  /// The offset in seconds from UTC.
   int get offsetSeconds => timeZoneOffset.inSeconds;
 
   /// Whether this [ZonedDateTime] occurs before [other].
@@ -211,18 +235,17 @@ class ZonedDateTime extends DateTime implements Temporal {
   @override
   ZonedDateTime adjust(ChronoField field, int newValue) {
     return switch (field) {
-      ChronoField.year => ZonedDateTime.of(this.copyWith(year: newValue)),
-      ChronoField.month => ZonedDateTime.of(this.copyWith(month: newValue)),
-      ChronoField.dayOfMonth => ZonedDateTime.of(this.copyWith(day: newValue)),
-      ChronoField.hourOfDay => ZonedDateTime.of(this.copyWith(hour: newValue)),
-      ChronoField.minute => ZonedDateTime.of(this.copyWith(minute: newValue)),
-      ChronoField.second => ZonedDateTime.of(this.copyWith(second: newValue)),
-      ChronoField.millisecond =>
-        ZonedDateTime.of(this.copyWith(millisecond: newValue)),
-      ChronoField.microsecond =>
-        ZonedDateTime.of(this.copyWith(microsecond: newValue)),
-      ChronoField.epochDay =>
-        ZonedDateTime.fromMicrosecondsSinceEpoch(newValue, isUtc: isUtc),
+      ChronoField.year ||
+      ChronoField.month ||
+      ChronoField.dayOfMonth ||
+      ChronoField.hourOfDay ||
+      ChronoField.minute ||
+      ChronoField.second ||
+      ChronoField.millisecond ||
+      ChronoField.microsecond ||
+      ChronoField.epochDay ||
+      ChronoField.microsecondOfDay =>
+        ZonedDateTime(dateTime.adjust(field, newValue), zone),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -273,6 +296,34 @@ class ZonedDateTime extends DateTime implements Temporal {
   @override
   String toString() => toIso8601String();
 
+  ZonedDateTime copyWith({
+    int? year,
+    int? month,
+    int? day,
+    int? hour,
+    int? minute,
+    int? second,
+    int? millisecond,
+    int? microsecond,
+    bool? isUtc,
+  }) {
+    return ZonedDateTime(
+      dateTime.copyWith(
+        year: year,
+        month: month,
+        dayOfMonth: day,
+        hour: hour,
+        minute: minute,
+        second: second,
+        millisecond: millisecond,
+        microsecond: microsecond,
+      ),
+      zone,
+    );
+  }
+
+  /// Returns a new instance of this [ZonedDateTime] with a different [zone]
+  /// at the instant.
   ZonedDateTime withZoneSameInstant(ZoneId zone) {
     return switch (zone) {
       ZoneId.system => toLocal(),
@@ -291,5 +342,7 @@ class ZonedDateTime extends DateTime implements Temporal {
 }
 
 extension LocalDateTimeWithZone on LocalDateTime {
+  /// Combines this [LocalDateTime] with the given [zone]
+  /// into a new [ZonedDateTime] instance.
   ZonedDateTime atZone(ZoneId zone) => ZonedDateTime(this, zone);
 }

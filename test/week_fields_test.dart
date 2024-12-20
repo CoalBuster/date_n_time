@@ -1,5 +1,4 @@
 import 'package:date_n_time/date_n_time.dart';
-import 'package:date_n_time/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:test/test.dart';

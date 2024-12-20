@@ -6,6 +6,7 @@ import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
+import 'zone_id.dart';
 
 class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   final LocalDate date;
@@ -15,6 +16,13 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
       : this.date = date,
         this.time = time;
 
+  /// Constructs a new [LocalDateTime] instance
+  /// from the given temporal.
+  ///
+  /// Relies on precense of [ChronoField.epochDay],
+  /// and [ChronoField.microsecondOfDay].
+  ///
+  /// Throws [UnsupportedTemporalTypeError] if unable to convert.
   factory LocalDateTime.from(Temporal temporal) {
     if (temporal is LocalDateTime) {
       return temporal.copyWith();
@@ -25,12 +33,10 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return LocalDateTime(date, time);
   }
 
-  /// Constructs a new [ZonedDateTime] instance
+  /// Constructs a new [LocalDateTime] instance
   /// with the given [microsecondsSinceEpoch].
   ///
-  /// If [isUtc] is false, then the date is in the local time zone.
-  ///
-  /// The constructed [ZonedDateTime] represents
+  /// The constructed [LocalDateTime] represents
   /// 1970-01-01T00:00:00Z + [microsecondsSinceEpoch] us in the given
   /// time zone (local or UTC).
   ///
@@ -39,9 +45,10 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   ///     ZonedDateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
   /// print(newYearsEve); // 2021-12-31T19:30:00.000Z
   /// ```
-  factory LocalDateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch) {
-    final dateTime =
-        DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
+  factory LocalDateTime.fromMicrosecondsSinceEpoch(
+      int microsecondsSinceEpoch, ZoneId zone) {
+    final dateTime = DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
+        isUtc: zone == ZoneId.utc);
     return LocalDateTime._ofDateTime(dateTime);
   }
 
@@ -217,16 +224,16 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return switch (field) {
       ChronoField.year ||
       ChronoField.month ||
-      ChronoField.dayOfMonth =>
+      ChronoField.dayOfMonth ||
+      ChronoField.epochDay =>
         LocalDateTime(date.adjust(field, newValue), time),
       ChronoField.hourOfDay ||
       ChronoField.minute ||
       ChronoField.second ||
       ChronoField.millisecond ||
-      ChronoField.microsecond =>
+      ChronoField.microsecond ||
+      ChronoField.microsecondOfDay =>
         LocalDateTime(date, time.adjust(field, newValue)),
-      ChronoField.epochDay =>
-        LocalDateTime.fromMicrosecondsSinceEpoch(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
