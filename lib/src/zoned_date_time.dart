@@ -9,7 +9,9 @@ import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
 import 'zone_id.dart';
 
+/// A date-time with a time-zone, such as July 20, 1969, 8:18pm GMT.
 class ZonedDateTime extends DateTime implements Temporal {
+  /// Constructs a new [LocalDateTime] by combining a [dateTime] with a [zone].
   factory ZonedDateTime(
     LocalDateTime dateTime,
     ZoneId zone,
@@ -178,7 +180,7 @@ class ZonedDateTime extends DateTime implements Temporal {
   /// Only the date and time parts are kept. Zone information is discarded.
   LocalDateTime get dateTime => LocalDateTime(date, time);
 
-  /// Retunrs a new [LocalDate] instance from this [ZonedDateTime].
+  /// Returns a new [LocalDate] instance from this [ZonedDateTime].
   ///
   /// Only the date part is kept. Time and zone information is discarded.
   LocalDate get date => LocalDate(year, month, day);
@@ -296,29 +298,56 @@ class ZonedDateTime extends DateTime implements Temporal {
   @override
   String toString() => toIso8601String();
 
+  /// Returns a new instance of this [ZonedDateTime]
+  /// with the given individual properties adjusted.
+  ///
+  /// The [copyWith] method creates a new [ZonedDateTime] object with values
+  /// for the properties [ZonedDateTime.year], [ZonedDateTime.hour], etc,
+  /// provided by similarly named arguments, or using the existing value
+  /// of the property if no argument, or `null`, is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = ZonedDateTime.now();
+  /// final sameTimeOnMoonLandingDay =
+  ///     now.copyWith(year: 1969, month: 07, dayOfMonth: 20);
+  /// ```
+  ///
+  /// Property values are allowed to overflow or underflow the range
+  /// of the property (like a [month] outside the 1 to 12 range),
+  /// which can affect the more significant properties
+  /// (for example, a month of 13 will result in the month of January
+  /// of the next year.)
+  ///
+  /// Notice also that if the result is a local-time ZonedDateTime,
+  /// seasonal time-zone adjustments (daylight saving) can cause some
+  /// combinations of dates, hours and minutes to not exist, or to exist
+  /// more than once.
+  /// In the former case, a corresponding time in one of the two adjacent time
+  /// zones is used instead. In the latter, one of the two options is chosen.
   ZonedDateTime copyWith({
     int? year,
     int? month,
-    int? day,
+    int? dayOfMonth,
     int? hour,
     int? minute,
     int? second,
     int? millisecond,
     int? microsecond,
-    bool? isUtc,
+    ZoneId? zone,
   }) {
     return ZonedDateTime(
       dateTime.copyWith(
         year: year,
         month: month,
-        dayOfMonth: day,
+        dayOfMonth: dayOfMonth,
         hour: hour,
         minute: minute,
         second: second,
         millisecond: millisecond,
         microsecond: microsecond,
       ),
-      zone,
+      zone ?? this.zone,
     );
   }
 

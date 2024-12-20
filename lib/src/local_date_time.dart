@@ -8,10 +8,12 @@ import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
 import 'zone_id.dart';
 
+/// A date-time without a time-zone, such as July 20, 1969, 8:18pm.
 class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   final LocalDate date;
   final LocalTime time;
 
+  /// Constructs a new [LocalDateTime] by combining a [date] with a [time].
   LocalDateTime(LocalDate date, LocalTime time)
       : this.date = date,
         this.time = time;
@@ -19,7 +21,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// Constructs a new [LocalDateTime] instance
   /// from the given temporal.
   ///
-  /// Relies on precense of [ChronoField.epochDay],
+  /// Relies on precense of [ChronoField.epochDay]
   /// and [ChronoField.microsecondOfDay].
   ///
   /// Throws [UnsupportedTemporalTypeError] if unable to convert.
@@ -42,8 +44,8 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   ///
   /// ```dart
   /// final newYearsEve =
-  ///     ZonedDateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
-  /// print(newYearsEve); // 2021-12-31T19:30:00.000Z
+  ///     LocalDateTime.fromMicrosecondsSinceEpoch(1640979000000000, ZoneId.utc);
+  /// print(newYearsEve); // 2021-12-31T19:30:00.000
   /// ```
   factory LocalDateTime.fromMicrosecondsSinceEpoch(
       int microsecondsSinceEpoch, ZoneId zone) {
@@ -63,7 +65,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return LocalDateTime._ofDateTime(dateTime);
   }
 
-  /// Constructs a new [ZonedDateTime] instance based on [formattedString].
+  /// Constructs a new [LocalDateTime] instance based on [formattedString].
   ///
   /// Throws a [FormatException] if the input string cannot be parsed.
   ///
@@ -74,16 +76,15 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   ///
   /// * `"2012-02-27"`
   /// * `"2012-02-27 13:27:00"`
-  /// * `"2012-02-27 13:27:00.123456789z"`
-  /// * `"2012-02-27 13:27:00,123456789z"`
+  /// * `"2012-02-27 13:27:00.123456789"`
+  /// * `"2012-02-27 13:27:00,123456789"`
   /// * `"20120227 13:27:00"`
   /// * `"20120227T132700"`
   /// * `"20120227"`
   /// * `"+20120227"`
-  /// * `"2012-02-27T14Z"`
-  /// * `"2012-02-27T14+00:00"`
-  /// * `"-123450101 00:00:00 Z"`: in the year -12345.
-  /// * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
+  /// * `"2012-02-27T14"`
+  /// * `"2012-02-27T14"`
+  /// * `"-123450101 00:00:00"`: in the year -12345.
   factory LocalDateTime.parse(String formattedString) {
     var dateTime = DateTime.parse(formattedString);
     return LocalDateTime._ofDateTime(dateTime);
@@ -107,7 +108,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The year.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.year); // 1969
   /// ```
   int get year => date.year;
@@ -115,7 +116,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The month `[1..12]`.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.month); // 7
   /// assert(moonLanding.month == DateTime.july);
   /// ```
@@ -124,7 +125,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The day of the month `[1..31]`.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.day); // 20
   /// ```
   int get dayOfMonth => date.dayOfMonth;
@@ -135,7 +136,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
   ///
   /// ```dart
-  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.hour); // 20
   /// ```
   int get hour => time.hour;
@@ -143,7 +144,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The minute `[0...59]`.
   ///
   /// ```dart
-  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.minute); // 18
   /// ```
   int get minute => time.minute;
@@ -151,7 +152,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The second `[0...59]`.
   ///
   /// ```dart
-  /// final moonLanding = LocalTime.parse('20:18:04');
+  /// final moonLanding = LocalDateTime.parse('1969-07-20 20:18:04');
   /// print(moonLanding.second); // 4
   /// ```
   int get second => time.second;
@@ -159,7 +160,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The millisecond `[0...999]`.
   ///
   /// ```dart
-  /// final time = LocalTime.parse('05:01:01.234567');
+  /// final time = LocalDateTime.parse('1969-07-20 05:01:01.234567');
   /// print(time.millisecond); // 234
   /// ```
   int get millisecond => time.millisecond;
@@ -167,15 +168,18 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   /// The microsecond `[0...999]`.
   ///
   /// ```dart
-  /// final time = LocalTime.parse('05:01:01.234567');
+  /// final time = LocalDateTime.parse('1969-07-20 05:01:01.234567');
   /// print(time.microsecond); // 567
   /// ```
   int get microsecond => time.microsecond;
 
-  int get epochDay => date.epochDay;
-
+  /// The proleptic month. Count of months since year 0.
   int get prolepticMonth => date.prolepticMonth;
 
+  /// The epoch-day. Count of days since epoch (1970-01-01).
+  int get epochDay => date.epochDay;
+
+  /// The microsecond of day.
   int get microsecondOfDay => time.microsecondOfDay;
 
   /// Returns true if year is a leap year.
@@ -304,6 +308,26 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     return time.compareTo(other.time);
   }
 
+  /// Returns a new instance of this [LocalDateTime]
+  /// with the given individual properties adjusted.
+  ///
+  /// The [copyWith] method creates a new [LocalDateTime] object with values
+  /// for the properties [LocalDateTime.year], [LocalDateTime.hour], etc,
+  /// provided by similarly named arguments, or using the existing value
+  /// of the property if no argument, or `null`, is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = LocalDateTime.now();
+  /// final sameTimeOnMoonLandingDay =
+  ///     now.copyWith(year: 1969, month: 07, dayOfMonth: 20);
+  /// ```
+  ///
+  /// Property values are allowed to overflow or underflow the range
+  /// of the property (like a [month] outside the 1 to 12 range),
+  /// which can affect the more significant properties
+  /// (for example, a month of 13 will result in the month of January
+  /// of the next year.)
   LocalDateTime copyWith({
     int? year,
     int? month,
@@ -370,6 +394,7 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
 }
 
 extension LocalDateWithTime on LocalDate {
+  /// Combines this date with the time of midnight to create a {@code LocalDateTime} at the start of this date.
   LocalDateTime atStartOfDay() => atTime(LocalTime.midnight);
 
   LocalDateTime atTime(LocalTime time) => LocalDateTime(this, time);

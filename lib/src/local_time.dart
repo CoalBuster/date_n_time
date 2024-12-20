@@ -4,25 +4,28 @@ import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
 
+/// A time without a time-zone, such as 8:18pm.
 class LocalTime implements Comparable<LocalTime>, Temporal {
+  /// The time of midnight at the start of the day, '00:00'.
   static final LocalTime midnight = LocalTime(0, 0);
 
   final Duration _internal;
 
-  /// Obtains an instance of LocalTime from components.
+  /// Constructs a new [LocalTime] instance from components,
+  /// like hour, minute and second.
   LocalTime(
     int hour,
     int minute, [
     int second = 0,
     int millisecond = 0,
     int microsecond = 0,
-  ]) : this._(Duration(
+  ]) : _internal = Duration(
           hours: hour,
           minutes: minute,
           seconds: second,
           milliseconds: millisecond,
           microseconds: microsecond,
-        ).inMicroseconds);
+        );
 
   /// Constructs a new [LocalTime] instance
   /// from the given temporal.
@@ -39,7 +42,12 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
     return LocalTime.ofMicrosecondOfDay(microsecondOfDay);
   }
 
-  /// Obtains the current date from the system clock in the default time-zone.
+  /// Constructs a new [LocalTime] instance with current time
+  /// in the local timezone.
+  ///
+  /// ```dart
+  /// final now = LocalTime.now();
+  /// ```
   factory LocalTime.now() {
     final dateTime = DateTime.now();
     return LocalTime(
@@ -51,6 +59,8 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
     );
   }
 
+  /// Constructs a new [LocalTime] instance
+  /// with the given [microsecondOfDay].
   factory LocalTime.ofMicrosecondOfDay(int microsecondOfDay) {
     return midnight.copyWith(microsecond: microsecondOfDay);
   }
@@ -106,10 +116,6 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
 
     return LocalTime(hour, minute, second, 0, milliAndMicroseconds);
   }
-
-  LocalTime._(int microseconds)
-      : _internal = Duration(
-            microseconds: microseconds.remainder(Duration.microsecondsPerDay));
 
   /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
   ///
@@ -259,6 +265,26 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
   @override
   int compareTo(LocalTime other) => _internal.compareTo(other._internal);
 
+  /// Returns a new instance of this [LocalTime]
+  /// with the given individual properties adjusted.
+  ///
+  /// The [copyWith] method creates a new [LocalTime] object with values
+  /// for the properties [LocalTime.hour], [LocalTime.minute], etc,
+  /// provided by similarly named arguments, or using the existing value
+  /// of the property if no argument, or `null`, is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = LocalTime.now();
+  /// final sameMinuteInDifferentHour =
+  ///     now.copyWith(hour: 14);
+  /// ```
+  ///
+  /// Property values are allowed to overflow or underflow the range
+  /// of the property (like a [hour] outside the 0 to 23 range),
+  /// which can affect the more significant properties
+  /// (for example, a minute of 61 will result in the minute of 1
+  /// of the next hour.)
   LocalTime copyWith({
     int? hour,
     int? minute,
