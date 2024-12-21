@@ -49,7 +49,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   /// Constructs a new [LocalDate] instance
   /// with the given [epochDay] count.
   factory LocalDate.ofEpochDay(int epochDay) {
-    return epoch.copyWith(dayOfMonth: epochDay);
+    return epoch.copyWith(dayOfMonth: epoch.dayOfMonth + epochDay);
   }
 
   /// Constructs a new [LocalDate] instance based on [formattedString].

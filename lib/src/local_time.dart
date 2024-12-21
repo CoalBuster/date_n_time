@@ -19,13 +19,13 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
     int second = 0,
     int millisecond = 0,
     int microsecond = 0,
-  ]) : _internal = Duration(
+  ]) : this._ofDuration(Duration(
           hours: hour,
           minutes: minute,
           seconds: second,
           milliseconds: millisecond,
           microseconds: microsecond,
-        );
+        ));
 
   /// Constructs a new [LocalTime] instance
   /// from the given temporal.
@@ -116,6 +116,12 @@ class LocalTime implements Comparable<LocalTime>, Temporal {
 
     return LocalTime(hour, minute, second, 0, milliAndMicroseconds);
   }
+
+  LocalTime._ofDuration(Duration duration)
+      : _internal = Duration(
+          microseconds:
+              duration.inMicroseconds.remainder(Duration.microsecondsPerDay),
+        );
 
   /// The hour of the day, expressed as in a 24-hour clock `[0..23]`.
   ///
