@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Improved package description.
+
 ## 1.0.2
 
 - **New:** `WeekFields` - for localized week aspects.
