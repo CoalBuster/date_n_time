@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Updated `intl` dependency to version `>=0.19 <0.21.0`, fixing resolve issue for flutter.
+
 ## 1.0.3
 
 - Improved package description.
@@ -22,7 +26,7 @@
 - Added `toZonedDateTime()` extension for `DateTime`.
 - Modified `LocalDate.from(Temporal)` to use `ChronoField.epochDay` instead of components.
 - Modified `LocalTime.from(Temporal)` to use `ChronoField.microsecondOfDay` instead of components.
-- Updated `intl` dependency to version `1.20.1`.
+- Updated `intl` dependency to version `0.20.1`.
 - Improved documentation coverage.
 
 ## 1.0.1
