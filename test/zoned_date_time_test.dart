@@ -1,6 +1,4 @@
 import 'package:date_n_time/date_n_time.dart';
-import 'package:date_n_time/src/zone_id.dart';
-import 'package:date_n_time/src/zoned_date_time.dart';
 import 'package:test/test.dart';
 
 void main() {

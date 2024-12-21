@@ -1,14 +1,15 @@
 name: date_n_time
-description: "Dart Extension Package for working with Dates without Times."
-version: 1.0.1
+description: "Dart Package for working with Dates without Times."
+version: 1.0.2
 repository: https://github.com/CoalBuster/date_n_time
 
 environment:
-  sdk: ^3.5.1
+  sdk: ^3.6.0
 
 dependencies:
-  intl: ^0.19.0
+  intl: ^0.20.1
 
 dev_dependencies:
-  test: ^1.25.7
+  test: ^1.25.12
+  lints: ^5.1.1
   

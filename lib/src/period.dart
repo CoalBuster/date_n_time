@@ -10,8 +10,17 @@ class Period implements TemporalAmount {
   final int _months;
   final int _years;
 
+  /// A constant for a period of zero.
   static const Period zero = Period(days: 0);
 
+  /// Constructs a new [Period] instance from components.
+  ///
+  /// All arguments are 0 by default.
+  ///
+  /// ```dart
+  /// const period = Period(years: 2, months: 8, days: 1);
+  /// print(period); // P2Y8M1D
+  /// ```
   const Period({
     int days = 0,
     int months = 0,
@@ -20,13 +29,17 @@ class Period implements TemporalAmount {
         _months = months,
         _years = years;
 
+  /// Creates a new [Period] instance consisting of the number of years,
+  /// months and days between [startInclusive] and [endExclusive].
   factory Period.between(Temporal startInclusive, Temporal endExclusive) {
     int totalMonths = 0;
 
     try {
       totalMonths = startInclusive.until(endExclusive, ChronoUnit.months);
       startInclusive = startInclusive.plus(totalMonths, ChronoUnit.months);
-    } on UnsupportedTemporalTypeError {}
+    } on UnsupportedTemporalTypeError {
+      // Months not supported. Calculate pure day-difference instead.
+    }
 
     final days = startInclusive.until(endExclusive, ChronoUnit.days);
     final years = totalMonths ~/ DateTime.monthsPerYear;
@@ -111,11 +124,11 @@ class Period implements TemporalAmount {
   @override
   Period minus(int amountToSubtract, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(years: years - amountToSubtract),
-      ChronoUnit.months => _with(months: months - amountToSubtract),
+      ChronoUnit.years => copyWith(years: years - amountToSubtract),
+      ChronoUnit.months => copyWith(months: months - amountToSubtract),
       ChronoUnit.weeks =>
-        _with(days: days - amountToSubtract * DateTime.daysPerWeek),
-      ChronoUnit.days => _with(days: days - amountToSubtract),
+        copyWith(days: days - amountToSubtract * DateTime.daysPerWeek),
+      ChronoUnit.days => copyWith(days: days - amountToSubtract),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -123,11 +136,11 @@ class Period implements TemporalAmount {
   @override
   Period plus(int amountToAdd, ChronoUnit unit) {
     return switch (unit) {
-      ChronoUnit.years => _with(years: years + amountToAdd),
-      ChronoUnit.months => _with(months: months + amountToAdd),
+      ChronoUnit.years => copyWith(years: years + amountToAdd),
+      ChronoUnit.months => copyWith(months: months + amountToAdd),
       ChronoUnit.weeks =>
-        _with(days: days + amountToAdd * DateTime.daysPerWeek),
-      ChronoUnit.days => _with(days: days + amountToAdd),
+        copyWith(days: days + amountToAdd * DateTime.daysPerWeek),
+      ChronoUnit.days => copyWith(days: days + amountToAdd),
       _ => throw UnsupportedTemporalTypeError('Unsupported unit: $unit'),
     };
   }
@@ -172,7 +185,20 @@ class Period implements TemporalAmount {
     return 'P$yearsText$monthsText$daysText';
   }
 
-  Period _with({
+  /// Returns a new instance of this [Period]
+  /// with the given individual properties adjusted.
+  ///
+  /// The specified properties are adjusted to the given new value.
+  /// Properties that are not specified or `null` remain unaffected.
+  ///
+  /// Note that the resulting [Period] is not normalized.
+  /// That is, '15 months' is different to '1 year and 3 months'.
+  ///
+  /// ```dart
+  /// final period = Period(years: 1, months: 3)
+  /// print(period.copyWith(months: 15)); // P1Y15M
+  /// ```
+  Period copyWith({
     int? years,
     int? months,
     int? days,

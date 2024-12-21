@@ -3,7 +3,20 @@ import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
 
+/// A time-based amount of time, such as '34.5 seconds'.
 class TimeSpan extends Duration implements TemporalAmount {
+  /// A constant for a period of zero.
+  static const TimeSpan zero = TimeSpan();
+
+  /// Constructs a new [TimeSpan] instance from components.
+  ///
+  /// All arguments are 0 by default.
+  ///
+  /// ```dart
+  /// const duration = TimeSpan(days: 1, hours: 8, minutes: 56, seconds: 59,
+  ///   milliseconds: 30, microseconds: 10);
+  /// print(duration); // 32:56:59.030010
+  /// ```
   const TimeSpan({
     super.days = 0,
     super.hours = 0,
@@ -13,18 +26,24 @@ class TimeSpan extends Duration implements TemporalAmount {
     super.microseconds = 0,
   });
 
+  /// Creates a new [TimeSpan] instance consisting of the duration,
+  /// between [startInclusive] and [endExclusive].
   factory TimeSpan.between(Temporal startInclusive, Temporal endExclusive) {
     try {
       int microseconds =
           startInclusive.until(endExclusive, ChronoUnit.microseconds);
       return TimeSpan(microseconds: microseconds);
-    } on UnsupportedTemporalTypeError {}
+    } on UnsupportedTemporalTypeError {
+      // Microseconds not supported. Attempt reading milliseconds instead.
+    }
 
     try {
       int milliseconds =
           startInclusive.until(endExclusive, ChronoUnit.milliseconds);
       return TimeSpan(milliseconds: milliseconds);
-    } on UnsupportedTemporalTypeError {}
+    } on UnsupportedTemporalTypeError {
+      // Milliseconds not supported. Attempt reading seconds instead.
+    }
 
     {
       int seconds = startInclusive.until(endExclusive, ChronoUnit.seconds);
@@ -32,6 +51,13 @@ class TimeSpan extends Duration implements TemporalAmount {
     }
   }
 
+  /// Constructs a new [TimeSpan] instance from the given [duration].
+  ///
+  /// ```dart
+  /// final duration = Duration(hours: 3);
+  /// final timeSpan = TimeSpan.of(duration);
+  /// print(duration == timeSpan); // true
+  /// ```
   TimeSpan.of(Duration duration) : this(microseconds: duration.inMicroseconds);
 
   /// Adds this [TimeSpan] and [other] and
@@ -95,44 +121,4 @@ class TimeSpan extends Duration implements TemporalAmount {
 
     return temporal;
   }
-
-  // /// Returns a copy of this [TimeSpan] with the specified units subtracted.
-  // TimeSpan minus({
-  //   int days = 0,
-  //   int hours = 0,
-  //   int minutes = 0,
-  //   int seconds = 0,
-  //   int milliseconds = 0,
-  //   int microseconds = 0,
-  // }) {
-  //   final subtraction = TimeSpan(
-  //     days: days,
-  //     hours: hours,
-  //     minutes: minutes,
-  //     seconds: seconds,
-  //     milliseconds: milliseconds,
-  //     microseconds: microseconds,
-  //   );
-  //   return TimeSpan.of(this - subtraction);
-  // }
-
-  // /// Returns a copy of this [TimeSpan] with the specified units added.
-  // TimeSpan plus({
-  //   int days = 0,
-  //   int hours = 0,
-  //   int minutes = 0,
-  //   int seconds = 0,
-  //   int milliseconds = 0,
-  //   int microseconds = 0,
-  // }) {
-  //   final addition = TimeSpan(
-  //     days: days,
-  //     hours: hours,
-  //     minutes: minutes,
-  //     seconds: seconds,
-  //     milliseconds: milliseconds,
-  //     microseconds: microseconds,
-  //   );
-  //   return TimeSpan.of(this + addition);
-  // }
 }

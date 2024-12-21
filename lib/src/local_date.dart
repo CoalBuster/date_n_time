@@ -6,32 +6,50 @@ import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 import 'temporal/temporal_amount.dart';
 import 'temporal/unsupported_temporal_type_error.dart';
-import 'utils/day_of_week_extensions.dart';
+import 'utils/date_time_extensions.dart';
 
+/// A date without a time-zone, such as July 20, 1969.
 class LocalDate implements Comparable<LocalDate>, Temporal {
+  /// The date at the start of the epoch year, '1970-01-01'.
   static final LocalDate epoch = LocalDate(1970, 1, 1);
 
   final DateTime _internal;
 
-  /// Obtains an instance of LocalDate from a year, month and day.
+  /// Constructs a new [LocalDate] instance from components,
+  /// like year, month and day.
   LocalDate(int year, [int month = 1, int dayOfMonth = 1])
       : _internal = DateTime.utc(year, month, dayOfMonth);
 
+  /// Constructs a new [LocalDate] instance
+  /// from the given temporal.
+  ///
+  /// Relies on precense of [ChronoField.epochDay].
+  ///
+  /// Throws [UnsupportedTemporalTypeError] if unable to convert.
   factory LocalDate.from(Temporal temporal) {
     if (temporal is LocalDate) {
       return temporal.copyWith();
     }
 
-    final year = temporal.get(ChronoField.year);
-    final month = temporal.get(ChronoField.month);
-    final dayOfMonth = temporal.get(ChronoField.dayOfMonth);
-    return LocalDate(year, month, dayOfMonth);
+    final epochDay = temporal.get(ChronoField.epochDay);
+    return LocalDate.ofEpochDay(epochDay);
   }
 
-  /// Obtains the current date from the system clock in the default time-zone.
+  /// Constructs a new [LocalDate] instance with current date
+  /// in the local timezone.
+  ///
+  /// ```dart
+  /// final now = LocalDate.now();
+  /// ```
   factory LocalDate.now() {
     final dateTime = DateTime.now();
     return LocalDate(dateTime.year, dateTime.month, dateTime.day);
+  }
+
+  /// Constructs a new [LocalDate] instance
+  /// with the given [epochDay] count.
+  factory LocalDate.ofEpochDay(int epochDay) {
+    return epoch.copyWith(dayOfMonth: epoch.dayOfMonth + epochDay);
   }
 
   /// Constructs a new [LocalDate] instance based on [formattedString].
@@ -66,7 +84,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   /// The month `[1..12]`.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// final moonLanding = LocalDate.parse('1969-07-20');
   /// print(moonLanding.month); // 7
   /// assert(moonLanding.month == DateTime.july);
   /// ```
@@ -75,13 +93,15 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   /// The year.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
+  /// final moonLanding = LocalDate.parse('1969-07-20');
   /// print(moonLanding.year); // 1969
   /// ```
   int get year => _internal.year;
 
+  /// The proleptic month. Count of months since year 0.
   int get prolepticMonth => year * DateTime.monthsPerYear + month - 1;
 
+  /// The epoch-day. Count of days since epoch (1970-01-01).
   int get epochDay => _internal.difference(epoch._internal).inDays;
 
   /// Returns true if year is a leap year.
@@ -136,6 +156,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
       ChronoField.year => copyWith(year: newValue),
       ChronoField.month => copyWith(month: newValue),
       ChronoField.dayOfMonth => copyWith(dayOfMonth: newValue),
+      ChronoField.epochDay => LocalDate.ofEpochDay(newValue),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -146,6 +167,7 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
       ChronoField.year => year,
       ChronoField.month => month,
       ChronoField.dayOfMonth => dayOfMonth,
+      ChronoField.dayOfWeek => dayOfWeek.value,
       ChronoField.epochDay => epochDay,
       ChronoField.prolepticMonth => prolepticMonth,
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
@@ -190,6 +212,26 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
   @override
   int compareTo(LocalDate other) => _internal.compareTo(other._internal);
 
+  /// Returns a new instance of this [LocalDate]
+  /// with the given individual properties adjusted.
+  ///
+  /// The [copyWith] method creates a new [LocalDate] object with values
+  /// for the properties [LocalDate.year], [LocalDate.dayOfMonth], etc,
+  /// provided by similarly named arguments, or using the existing value
+  /// of the property if no argument, or `null`, is provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final now = LocalDate.now();
+  /// final sameDateInMoonLandingYear =
+  ///     now.copyWith(year: 1969);
+  /// ```
+  ///
+  /// Property values are allowed to overflow or underflow the range
+  /// of the property (like a [month] outside the 1 to 12 range),
+  /// which can affect the more significant properties
+  /// (for example, a month of 13 will result in the month of January
+  /// of the next year.)
   LocalDate copyWith({
     int? year,
     int? month,
@@ -202,6 +244,8 @@ class LocalDate implements Comparable<LocalDate>, Temporal {
     );
   }
 
+  /// Returns a string representing this [LocalDate],
+  /// formatted according to the given [format].
   String format(DateFormat format) => format.format(_internal);
 
   @override
