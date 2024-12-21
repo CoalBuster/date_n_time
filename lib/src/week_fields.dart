@@ -5,6 +5,7 @@ import 'temporal/chrono_field.dart';
 import 'temporal/chrono_unit.dart';
 import 'temporal/temporal.dart';
 
+/// Localized definitions of week-related aspects.
 class WeekFields {
   /// The first day-of-week.
   final DayOfWeek firstDayOfWeek;
@@ -40,7 +41,8 @@ class WeekFields {
   }
 }
 
-extension LocalizedDateExtensions<T extends Temporal> on T {
+/// Extensions for localized calculations on [Temporal].
+extension TemporalWeekFields<T extends Temporal> on T {
   /// Returns a new instance of this [Temporal] at the start of the week.
   ///
   /// The first day-of-week varies by culture. For example, the US uses Sunday,

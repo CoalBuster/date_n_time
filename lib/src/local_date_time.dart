@@ -266,7 +266,9 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     try {
       var newDate = date.minus(amountToSubtract, unit);
       return LocalDateTime(newDate, time);
-    } on UnsupportedTemporalTypeError {}
+    } on UnsupportedTemporalTypeError {
+      // Not a date unit. Subtract time instead.
+    }
 
     return _plusTime(0 - amountToSubtract, unit);
   }
@@ -276,7 +278,9 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
     try {
       var newDate = date.plus(amountToAdd, unit);
       return LocalDateTime(newDate, time);
-    } on UnsupportedTemporalTypeError {}
+    } on UnsupportedTemporalTypeError {
+      // Not a date unit. Add time instead.
+    }
 
     return _plusTime(amountToAdd, unit);
   }
@@ -393,13 +397,20 @@ class LocalDateTime implements Comparable<LocalDateTime>, Temporal {
   }
 }
 
+/// Extensions for constructing a [LocalDateTime] from a [LocalDate].
 extension LocalDateWithTime on LocalDate {
-  /// Combines this date with the time of midnight to create a {@code LocalDateTime} at the start of this date.
+  /// Combines this [LocalDate] with the time of midnight
+  /// to create a new [LocalDateTime] at the start of this date.
   LocalDateTime atStartOfDay() => atTime(LocalTime.midnight);
 
+  /// Combines this [LocalDate] with the given [time]
+  /// to create a new [LocalDateTime].
   LocalDateTime atTime(LocalTime time) => LocalDateTime(this, time);
 }
 
+/// Extensions for constructing a [LocalDateTime] from a [LocalTime].
 extension LocalTimeWithDate on LocalTime {
+  /// Combines this [LocalTime] with the given [date]
+  /// to create a new [LocalDateTime].
   LocalDateTime atDate(LocalDate date) => LocalDateTime(date, this);
 }

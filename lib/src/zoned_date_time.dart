@@ -370,6 +370,7 @@ class ZonedDateTime extends DateTime implements Temporal {
   }
 }
 
+/// Extensions for constructing a [ZonedDateTime] from a [LocalDateTime].
 extension LocalDateTimeWithZone on LocalDateTime {
   /// Combines this [LocalDateTime] with the given [zone]
   /// into a new [ZonedDateTime] instance.

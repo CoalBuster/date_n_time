@@ -20,7 +20,7 @@ extension DateTimeExtensions on DateTime {
     };
   }
 
-  /// Retunrs a new [LocalDate] instance from this [DateTime].
+  /// Returns a new [LocalDate] instance from this [DateTime].
   ///
   /// Only the date part is kept. Time and zone information is discarded.
   LocalDate toLocalDate() => LocalDate(
@@ -48,6 +48,6 @@ extension DateTimeExtensions on DateTime {
         microsecond,
       );
 
-  /// Retunrs a new [ZonedDateTime] instance from this [DateTime].
+  /// Returns a new [ZonedDateTime] instance from this [DateTime].
   ZonedDateTime toZonedDateTime() => ZonedDateTime.of(this);
 }
