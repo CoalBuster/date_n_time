@@ -4,12 +4,12 @@ version: 1.0.1
 repository: https://github.com/CoalBuster/date_n_time
 
 environment:
-  sdk: ^3.5.1
+  sdk: ^3.6.0
 
 dependencies:
   intl: ^0.20.1
 
 dev_dependencies:
   test: ^1.25.12
-  lints: ^5.0.0
+  lints: ^5.1.1
   
