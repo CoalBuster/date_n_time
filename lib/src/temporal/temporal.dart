@@ -58,7 +58,8 @@ extension TemporalAdjusters<T extends Temporal> on T {
   /// print(date.atEndOfMonth()) // 2024-10-31
   /// ```
   T atEndOfMonth() {
-    var plusMonth = this.plus(1, ChronoUnit.months);
+    var startOfMonth = this.atStartOfMonth(); // Prevent jumping two months
+    var plusMonth = startOfMonth.plus(1, ChronoUnit.months);
     var newVal = plusMonth.adjust(ChronoField.dayOfMonth, 0);
     return newVal as T;
   }
