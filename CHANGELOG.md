@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5
+
+- Fixed a bug where `Temporal.atEndOfMonth()` would return a wrong result
+  for dates near the end of the month, ironically.
+
 ## 1.0.4
 
 - Updated `intl` dependency to version `>=0.19 <0.21.0`, fixing resolve issue for flutter.
