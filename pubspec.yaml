@@ -1,6 +1,6 @@
 name: date_n_time
 description: "Dart Package for working with Dates without Times and/or Zones."
-version: 1.0.6
+version: 1.0.7
 repository: https://github.com/CoalBuster/date_n_time
 
 environment:

@@ -10,7 +10,7 @@ class LocalDateRange {
   final LocalDate end;
 
   /// Creates a date range for the given start and end [DateTime].
-  LocalDateRange(this.start, this.end) : assert(start >= end);
+  LocalDateRange(this.start, this.end) : assert(start <= end);
 
   Period get period => start == end ? Period.zero : Period.between(start, end);
 
