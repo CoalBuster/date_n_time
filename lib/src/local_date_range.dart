@@ -1,4 +1,5 @@
 import 'local_date.dart';
+import 'period.dart';
 import 'temporal/chrono_unit.dart';
 
 class LocalDateRange {
@@ -9,9 +10,9 @@ class LocalDateRange {
   final LocalDate end;
 
   /// Creates a date range for the given start and end [DateTime].
-  LocalDateRange(this.start, this.end) : assert(start < end);
+  LocalDateRange(this.start, this.end) : assert(start >= end);
 
-  // Period get period => start.until(end);
+  Period get period => start == end ? Period.zero : Period.between(start, end);
 
   @override
   bool operator ==(Object other) {
