@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- Modified `LocalDateRange` constructor to **actually** allow for zero-length ranges.
+
 ## 1.0.6
 
 - Added `period` property for `LocalDateRange`.
