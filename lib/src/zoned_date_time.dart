@@ -178,38 +178,38 @@ class ZonedDateTime extends DateTime implements Temporal {
   /// Returns a new [LocalDateTime] instance from this [ZonedDateTime].
   ///
   /// Only the date and time parts are kept. Zone information is discarded.
-  LocalDateTime get dateTime => LocalDateTime(date, time);
+  LocalDateTime get localDateTime => LocalDateTime(localDate, localTime);
 
   /// Returns a new [LocalDate] instance from this [ZonedDateTime].
   ///
   /// Only the date part is kept. Time and zone information is discarded.
-  LocalDate get date => LocalDate(year, month, day);
+  LocalDate get localDate => LocalDate(year, month, day);
 
   /// Returns a new [LocalDateTime] instance from this [ZonedDateTime].
   ///
   /// Only the date and time parts are kept. Zone information is discarded.
-  LocalTime get time =>
+  LocalTime get localTime =>
       LocalTime(hour, minute, second, millisecond, microsecond);
 
   /// The zone that this [ZonedDateTime] is in `[utc|system]`.
   ZoneId get zone => isUtc ? ZoneId.utc : ZoneId.system;
 
   /// The day of the week `[monday..sunday]`.
-  DayOfWeek get dayOfWeek => date.dayOfWeek;
+  DayOfWeek get dayOfWeek => localDate.dayOfWeek;
 
   /// Whether the year is a leap year.
   ///
   /// See [LocalDate.isLeapYear].
-  bool get isLeapYear => date.isLeapYear;
+  bool get isLeapYear => localDate.isLeapYear;
 
   /// The proleptic month. Count of months since year 0.
-  int get prolepticMonth => date.prolepticMonth;
+  int get prolepticMonth => localDate.prolepticMonth;
 
   /// The epoch-day. Count of days since epoch (1970-01-01).
-  int get epochDay => date.epochDay;
+  int get epochDay => localDate.epochDay;
 
   /// The microsecond of day.
-  int get microsecondOfDay => time.microsecondOfDay;
+  int get microsecondOfDay => localTime.microsecondOfDay;
 
   /// The offset in seconds from UTC.
   int get offsetSeconds => timeZoneOffset.inSeconds;
@@ -247,7 +247,7 @@ class ZonedDateTime extends DateTime implements Temporal {
       ChronoField.microsecond ||
       ChronoField.epochDay ||
       ChronoField.microsecondOfDay =>
-        ZonedDateTime(dateTime.adjust(field, newValue), zone),
+        ZonedDateTime(localDateTime.adjust(field, newValue), zone),
       _ => throw UnsupportedTemporalTypeError('Unsupported field: $field'),
     };
   }
@@ -273,20 +273,20 @@ class ZonedDateTime extends DateTime implements Temporal {
 
   @override
   ZonedDateTime minus(int amountToSubtract, ChronoUnit unit) {
-    var utc = toUtc().dateTime.minus(amountToSubtract, unit);
+    var utc = toUtc().localDateTime.minus(amountToSubtract, unit);
     return ZonedDateTime(utc, ZoneId.utc).withZoneSameInstant(zone);
   }
 
   @override
   ZonedDateTime plus(int amountToAdd, ChronoUnit unit) {
-    var utc = toUtc().dateTime.plus(amountToAdd, unit);
+    var utc = toUtc().localDateTime.plus(amountToAdd, unit);
     return ZonedDateTime(utc, ZoneId.utc).withZoneSameInstant(zone);
   }
 
   @override
   int until(Temporal endExclusive, ChronoUnit unit) {
     final other = ZonedDateTime.from(endExclusive);
-    return this.toUtc().dateTime.until(other.toUtc(), unit);
+    return this.toUtc().localDateTime.until(other.toUtc(), unit);
   }
 
   @override
@@ -337,7 +337,7 @@ class ZonedDateTime extends DateTime implements Temporal {
     ZoneId? zone,
   }) {
     return ZonedDateTime(
-      dateTime.copyWith(
+      localDateTime.copyWith(
         year: year,
         month: month,
         dayOfMonth: dayOfMonth,

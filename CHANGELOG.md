@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.8
+
+Hotfix for JS optimizations.
+
+- Renamed `date` to `localDate` for `LocalDateTime` / `ZonedDateTime`.
+- Renamed `dateTime` to `localDateTime` for `ZonedDateTime`.
+- Renamed `time` to `localTime` for `LocalDateTime` / `ZonedDateTime`.
+
+As it turns out, 'date' as a property seems to conflict with an internal JS type.  
+This primarily affected Flutter apps.
+
 ## 1.0.7
 
 - Modified `LocalDateRange` constructor to **actually** allow for zero-length ranges.
