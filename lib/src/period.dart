@@ -82,6 +82,9 @@ class Period implements TemporalAmount {
   /// The days unit of this [Period].
   int get days => _days;
 
+  /// The total number of months in this [Period].
+  int get totalMonths => _years * DateTime.monthsPerYear + _months;
+
   /// Whether this [Period] is negative.
   ///
   /// A negative [Period] represents the difference from a later date to an
