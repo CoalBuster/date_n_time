@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9
+
+- Added `totalMonths` property for `Period`.
+
 ## 1.0.8
 
 Hotfix for JS optimizations.
